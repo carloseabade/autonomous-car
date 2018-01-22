@@ -1,0 +1,34 @@
+\documentclass[a4]{article}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{../../manual/manual}
+\usepackage{../tutorial-only}
+\include{mylistings}
+\makeindex
+
+% table of stacks:
+
+\newenvironment{vplan*}[1][] {
+\smaller
+\begin{tabular}
+        {|l|l|} 
+        \hline } {
+        \cr \hline 
+\end{tabular}
+} 
+
+\lstset{basicstyle=\sffamily}
+\author{Louise A. Dennis}
+
+\title{Gwendolen Tutorial 5 -- Events and Intentions}
+
+\begin{document}
+\maketitle
+\input{tutorial5-content}
+
+\bibliography{tutorials}
+\bibliographystyle{plain}
+
+\end{document}

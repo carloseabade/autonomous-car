@@ -1,0 +1,10 @@
+# Latex Compilation Files #
+*.pdf
+*.log
+*.aux
+*.idx
+*.bbl
+*.blg
+*.toc
+*.ilg
+*.ind

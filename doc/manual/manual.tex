@@ -1,0 +1,52 @@
+\documentclass[a4]{book}
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\include{lstshortcuts}
+\usepackage{manual}
+\usepackage{manual-only}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\makeindex
+\graphicspath{{../tutorials/gwendolen/}{../tutorials/ail/}{../tutorials/ajpf/}{../tutorials/eass/}}
+
+\author{Louise A. Dennis}
+
+\title{The MCAPL Framework Manual 2017: \\
+Covering the Agent Infrastructure Layer (AIL) and Agent Java Pathfinder (AJPF)}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\SetJava
+\include{mylistings}
+
+\include{introduction}
+
+\include{installation}
+
+\part{Agent JavaPathfinder and the Agent Infrastructure Layer}
+
+\include{basic}
+
+\include{ajpf-tutorials}
+
+\include{ail-tutorials}
+
+\part{Agent Programming Languages}
+
+\include{gwendolen-tutorials}
+
+\include{eass-tutorials}
+
+\include{goal-notes}
+
+
+\bibliography{manual}
+\bibliographystyle{apalike}
+
+\printindex
+
+\end{document}

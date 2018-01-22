@@ -1,0 +1,7 @@
+env=eass.tutorials.tutorial1.CarOnMotorwayEnvironment
+
+mas.file = /src/examples/eass/tutorials/tutorial1/car.eass
+mas.builder = eass.EASSMASBuilder
+
+log.warning = ajpf.MCAPLAgent
+log.format = brief
