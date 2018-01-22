@@ -13,6 +13,12 @@ public class Car {
 	private double xaccel = 0;
 	private double yaccel = 0;
 	
+	/**
+	 * width & length in meters.
+	 */
+	private double width = 2.2;
+	private double length = 5;
+	
 	private int INITIAL_X, INITIAL_Y, B_WIDTH, B_HEIGHT;
 	
 	private boolean controlled;
@@ -49,6 +55,14 @@ public class Car {
 			System.err.println("Got Socket Connection");
 		}
 
+	}
+	
+	public double getWidth() {
+		return width;
+	}
+	
+	public double getLength() {
+		return length;
 	}
 	
 	/**
