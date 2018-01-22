@@ -16,8 +16,8 @@ public class Car {
 	/**
 	 * width & length in meters.
 	 */
-	private double width = 2.2;
-	private double length = 5;
+	private Double width = 2.2;
+	private Double length = 5.0;
 	
 	private int INITIAL_X, INITIAL_Y, B_WIDTH, B_HEIGHT;
 	
@@ -57,11 +57,11 @@ public class Car {
 
 	}
 	
-	public double getWidth() {
+	public Double getWidth() {
 		return width;
 	}
 	
-	public double getLength() {
+	public Double getLength() {
 		return length;
 	}
 	
