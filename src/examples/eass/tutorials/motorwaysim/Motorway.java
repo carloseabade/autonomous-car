@@ -51,6 +51,7 @@ public class Motorway extends JPanel implements Runnable {
 	private Thread animator;
 	private Car car1;
 	private boolean car1control = false;
+	private Lane lane = new Lane();
 	
 	private Rubble rubble1;
 	private Car car2;
@@ -116,7 +117,7 @@ public class Motorway extends JPanel implements Runnable {
 		Double d1 = car1.getX();
 		Double d2 = car1.getY();
 		
-		g.drawRect(d1.intValue(), d2.intValue(), (int)car1.getWidth()*5, (int)car1.getLength()*5);
+		g.drawRect(d1.intValue(), d2.intValue(), car1.getWidth().intValue()*5, car1.getLength().intValue()*5);
 		g.drawLine(35, 0, 35, B_HEIGHT);
 		g.drawLine(70, 0, 70, B_HEIGHT);
 		g.drawRect(rubble1.getX(), rubble1.getY(), 5, 5);
@@ -130,8 +131,8 @@ public class Motorway extends JPanel implements Runnable {
 			dc2 = car2.getY();
 			
 			g.drawRect(dc1.intValue(), dc2.intValue(), 10, 15);
-			g.drawLine(35, 0, 35, B_HEIGHT);
-			g.drawLine(70, 0, 70, B_HEIGHT);
+			g.drawLine(lane.getWidth().intValue()*5, 0, lane.getWidth().intValue()*5, B_HEIGHT);
+			g.drawLine(lane.getWidth().intValue()*5*2, 0, lane.getWidth().intValue()*5*2, B_HEIGHT);
 			
 			cydot = car2.getYDot();
 			
