@@ -74,14 +74,15 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				double xdot = socket.readDouble();
 				double ydot = socket.readDouble();
 				int started = socket.readInt();
-				
+				int lane = socket.readInt();
 				try {
 					while (socket.pendingInput()) {
 						x = socket.readDouble();
 						socket.readDouble();
 						xdot = socket.readDouble();
 						ydot = socket.readDouble();
-						started = socket.readInt();			
+						started = socket.readInt();	
+						lane = socket.readInt();
 					}
 				} catch (Exception e) {
 					AJPFLogger.warning(logname, e.getMessage());
@@ -95,7 +96,7 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				}
 				
 				Literal lane2 = new Literal("lane2");
-				lane2.addTerm(new NumberTermImpl(100));
+				lane2.addTerm(new NumberTermImpl(lane*4));
 				addUniquePercept("lane2", lane2);
 					
 				addUniquePercept("xpos", xpos);
@@ -119,28 +120,6 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 			finished = true;
 		} else if (act.getFunctor().equals("change_lane")) {
 			socket.writeDouble(0.2);
-			
-			// The following probably isn't necessary, the idea is to stop the
-			// car accelerating sideways once it has some speed in the x direction.
-			boolean xspeed0 = true;
-			while (xspeed0) {
-				try {
-					if (socket.pendingInput()) {
-						socket.readDouble();
-						socket.readDouble();
-						double xdot = socket.readDouble();
-						socket.readDouble();
-						socket.readInt();
-				
-						if (xdot != 0.0) {
-							xspeed0 = false;
-						}
-					}
-				} catch (Exception e) {
-					AJPFLogger.warning(logname, e.getMessage());
-				}
-			}
-			socket.writeDouble(0.0);
 		} else if (act.getFunctor().equals("stay_in_lane")) {
 			socket.writeDouble(-0.1);
 		}

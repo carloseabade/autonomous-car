@@ -15,8 +15,8 @@ public class Car {
 	/**
 	 * width & length in meters.
 	 */
-	private Double width = 5.2;
-	private Double length = 10.0;
+	private Double width = 2.19;
+	private Double length = 4.98;
 	
 	private int INITIAL_X, INITIAL_Y, B_WIDTH, B_HEIGHT;
 	
@@ -188,6 +188,7 @@ public class Car {
 				socketserver.writeDouble(xdot);
 				socketserver.writeDouble(ydot);
 				socketserver.writeInt(started);
+				socketserver.writeInt(INITIAL_X);
 			}  catch (Exception e) {
 				System.err.println("READ ERROR: Closing socket");
 				close();

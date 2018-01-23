@@ -9,7 +9,7 @@ import ail.util.AILSocketServer;
  */
 public class Lane {
 	
-	private Double width = 14.0; //Width in meters
+	private Double width = 7.0; //Width in meters
 
 	public Lane(Double width) {
 		this.width = width;

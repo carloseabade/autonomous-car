@@ -40,8 +40,8 @@ public class Motorway extends JPanel implements Runnable {
 	
 	static final long serialVersionUID = 0;
 	
-	private final int B_WIDTH = 300;
-	private final int B_HEIGHT = 550;
+	private final int B_WIDTH = 800;
+	private final int B_HEIGHT = 600;
 	private final int DELAY = 25;
 	
 	private Thread animator;
@@ -115,7 +115,7 @@ public class Motorway extends JPanel implements Runnable {
 		g.drawLine(lane.getWidth().intValue()*5, 0, lane.getWidth().intValue()*5, B_HEIGHT);
 		g.drawLine(lane.getWidth().intValue()*5*2, 0, lane.getWidth().intValue()*5*2, B_HEIGHT);
 		
-		g.fillRect(rubble1.getX(), rubble1.getY(), 5, 5);
+		g.fillRect(rubble1.getX(), rubble1.getY(), 10, 10);
 		
 		Double ydot = car1.getYDot();
 		
