@@ -42,23 +42,18 @@ public class Motorway extends JPanel implements Runnable {
 	
 	private final int B_WIDTH = 300;
 	private final int B_HEIGHT = 550;
-	private final int INITIAL_X1 = 12;
-	private final int INITIAL_Y1 = 0;
-	private final int INITIAL_C2_X1 = 45;
-	private final int INITIAL_C2_Y1 = 0;
 	private final int DELAY = 25;
 	
 	private Thread animator;
 	private Car car1;
+	private Rubble rubble1;
 	private boolean car1control = false;
 	private Lane lane = new Lane();
-	
-	private Rubble rubble1;
-	private Car car2;
+	private final int INITIAL_X1 = lane.getWidth().intValue()*5/2;
+	private final int INITIAL_Y1 = 0;
 	
 	private boolean started = false;
 	private boolean running = true;
-	private boolean secondcar = false;
 	
 	/**
 	 * Constructor.
@@ -80,7 +75,6 @@ public class Motorway extends JPanel implements Runnable {
 		if (control.equals("agent")) {
 			car1control = true;
 		}
-		
 		
 		car1 = new Car(INITIAL_X1, INITIAL_Y1, B_WIDTH, B_HEIGHT, car1control);
 		rubble1 = new Rubble(12, 350);
@@ -118,33 +112,15 @@ public class Motorway extends JPanel implements Runnable {
 		Double d2 = car1.getY();
 		
 		g.drawRect(d1.intValue(), d2.intValue(), car1.getWidth().intValue()*5, car1.getLength().intValue()*5);
-		g.drawLine(35, 0, 35, B_HEIGHT);
-		g.drawLine(70, 0, 70, B_HEIGHT);
-		g.drawRect(rubble1.getX(), rubble1.getY(), 5, 5);
+		g.drawLine(lane.getWidth().intValue()*5, 0, lane.getWidth().intValue()*5, B_HEIGHT);
+		g.drawLine(lane.getWidth().intValue()*5*2, 0, lane.getWidth().intValue()*5*2, B_HEIGHT);
+		
+		g.fillRect(rubble1.getX(), rubble1.getY(), 5, 5);
 		
 		Double ydot = car1.getYDot();
-		Double cydot = 0.0;
-		Double dc2 = 0.0;
-		
-		if (secondcar) {
-			Double dc1 = car2.getX();
-			dc2 = car2.getY();
-			
-			g.drawRect(dc1.intValue(), dc2.intValue(), 10, 15);
-			g.drawLine(lane.getWidth().intValue()*5, 0, lane.getWidth().intValue()*5, B_HEIGHT);
-			g.drawLine(lane.getWidth().intValue()*5*2, 0, lane.getWidth().intValue()*5*2, B_HEIGHT);
-			
-			cydot = car2.getYDot();
-			
-		}
 		
 		g.drawString("Speed Car 1: " + ydot.intValue(), 150, 20);
 		g.drawString("Distance Car 1: " + d2.intValue(), 150, 50);
-		
-		if (secondcar) {
-			g.drawString("Speed Car 2: " + cydot.intValue(), 150, 100);
-			g.drawString("Distance Car 2: " + dc2.intValue(), 150, 130);			
-		}
 		
 		Toolkit.getDefaultToolkit().sync();
 	}
@@ -157,10 +133,6 @@ public class Motorway extends JPanel implements Runnable {
 		car1.calculatePos();
 		car1.updateParameters();
 		
-		if (secondcar) {
-			car2.calculatePos();
-			car2.updateParameters();
-		}
 	}
 	
 	/*
@@ -205,9 +177,6 @@ public class Motorway extends JPanel implements Runnable {
 		started = true;
 		car1.start();
 		
-		if (secondcar) {
-			car2.start();
-		}
 	}
 	
 	public boolean started() {
@@ -220,9 +189,6 @@ public class Motorway extends JPanel implements Runnable {
 	public void stop() {
 		running = false;
 		car1.close();
-		if (secondcar) {
-			car2.close();
-		}
 	}
 	
 	/**
@@ -233,9 +199,6 @@ public class Motorway extends JPanel implements Runnable {
 		return car1;
 	}
 	
-	public Car getCar2() {
-		return car2;
-	}
 	
 	/**
 	 * Configure the motorway for this simulation.

@@ -90,19 +90,16 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				Literal xpos = new Literal("xpos");
 				xpos.addTerm(new NumberTermImpl(x));
 				
-				Literal xspeed = new Literal("xspeed");
-				xspeed.addTerm(new NumberTermImpl(xdot));
-				
-				Literal yspeed = new Literal("yspeed");
-				yspeed.addTerm(new NumberTermImpl(ydot));
-				
 				if (started > 0) {
 					addPercept(new Literal("started"));
 				}
 				
+				Literal lane2 = new Literal("lane2");
+				lane2.addTerm(new NumberTermImpl(100));
+				addUniquePercept("lane2", lane2);
+					
 				addUniquePercept("xpos", xpos);
-				addUniquePercept("xspeed", xspeed);
-				addUniquePercept("yspeed", yspeed);
+
 			}
 		} catch (Exception e) {
 			AJPFLogger.warning(logname, e.getMessage());
@@ -116,20 +113,12 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 	public Unifier executeAction(String agName, Action act) throws AILexception {
 		Unifier u = new Unifier();
 		
-		if (act.getFunctor().equals("accelerate")) {
-			socket.writeDouble(0.0);
-			socket.writeDouble(0.01);
-		} else if (act.getFunctor().equals("decelerate")) {
-			socket.writeDouble(0.0);
-			socket.writeDouble(-0.1);
-		} else if (act.getFunctor().equals("maintain_speed")) {
-			socket.writeDouble(0.0);
+		if (act.getFunctor().equals("maintain_speed")) {
 			socket.writeDouble(0.0);
 		} else if (act.getFunctor().equals("finished")) {
 			finished = true;
 		} else if (act.getFunctor().equals("change_lane")) {
-			socket.writeDouble(0.05);
-			socket.writeDouble(0.0);
+			socket.writeDouble(0.2);
 			
 			// The following probably isn't necessary, the idea is to stop the
 			// car accelerating sideways once it has some speed in the x direction.
@@ -152,10 +141,8 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				}
 			}
 			socket.writeDouble(0.0);
-			socket.writeDouble(0.0);
 		} else if (act.getFunctor().equals("stay_in_lane")) {
 			socket.writeDouble(-0.1);
-			socket.writeDouble(0.0);
 		}
 		
 		u.compose(super.executeAction(agName, act));

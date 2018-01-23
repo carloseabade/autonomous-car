@@ -11,13 +11,12 @@ public class Car {
 	private double x, y, xrel, yrel;
 	private double xdot = 0, ydot = 5;
 	private double xaccel = 0;
-	private double yaccel = 0;
 	
 	/**
 	 * width & length in meters.
 	 */
-	private Double width = 2.2;
-	private Double length = 5.0;
+	private Double width = 5.2;
+	private Double length = 10.0;
 	
 	private int INITIAL_X, INITIAL_Y, B_WIDTH, B_HEIGHT;
 	
@@ -30,6 +29,8 @@ public class Car {
 	 */
 	protected AILSocketServer socketserver;
 
+	public Car() {}
+	
 	/**
 	 * Constructor.
 	 * @param xi
@@ -39,11 +40,11 @@ public class Car {
 	 * @param externalcontrol
 	 */
 	public Car (int xi, int yi, int bw, int bh, boolean externalcontrol) {
-		x = xi;
+		x = xi-((width.intValue()*5)/2);
 		y = yi;
-		xrel = xi;
+		xrel = xi-((width.intValue()*5)/2);
 		yrel = yi;
-		INITIAL_X = xi;
+		INITIAL_X = xi-((width.intValue()*5)/2);
 		INITIAL_Y = yi;
 		B_WIDTH = bw;
 		B_HEIGHT = bh;
@@ -110,11 +111,7 @@ public class Car {
 	 */
 	public void calculatePos() {
 		xdot += xaccel;
-		ydot += yaccel;
-		
-//		System.err.println(ydot);
-		
-		
+				
 		if (xdot < 0) {
 			xdot = 0;
 		}
@@ -128,8 +125,6 @@ public class Car {
 		xrel += xdot;
 		yrel += ydot;
 
-		//		System.err.println(y);
-		
 		if (yrel > B_HEIGHT) {
 			yrel = INITIAL_Y;
 		}
@@ -170,7 +165,6 @@ public class Car {
 		if (controlled) {
 			try {
 				xaccel = socketserver.readDouble();
-				yaccel = socketserver.readDouble();
 			} catch (Exception e) {
 				System.err.println("READ ERROR: Closing socket");
 				close();
