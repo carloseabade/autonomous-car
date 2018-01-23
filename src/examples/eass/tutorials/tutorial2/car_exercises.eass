@@ -3,7 +3,7 @@ EASS
 :abstraction: car
 
 :Initial Beliefs:
-													
+
 :Initial Goals:
 		
 
@@ -19,10 +19,14 @@ EASS
 +xpos(L) : {B lane2(X), X < L} <-
 	assert_shared(in_lane_2);
 	
-+! maintain_speed [perform] : {True} <- maintain_speed;
++xpos(L) : {B lane1(X), X > L} <-
+	assert_shared(in_lane_1);
+	
++! maintain_speed [perform] : {true} <- maintain_speed;
 +! finished [perform] : {True} <- finished;
-+! change_lane [perform] : {True} <- change_lane;
++! change_lane2 [perform] : {True} <- change_lane2;
 +! stay_in_lane [perform] : {True} <- stay_in_lane;
++! change_lane1 [perform] : {True} <- change_lane1;
 
 :name: car
 			
@@ -34,7 +38,14 @@ EASS
 
 +start: {True} <-
 	perf(maintain_speed),
-	perf(change_lane);
+	perf(change_lane2);
 	
 +in_lane_2: {True} <-
 	perf(stay_in_lane);
+	
++stay_in_lane: {True} <-
+	perf(change_lane1);
+	
++in_lane_1: {True} <-
+	perf(stay_in_lane);
+	perf(finished);
