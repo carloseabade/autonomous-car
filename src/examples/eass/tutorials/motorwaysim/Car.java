@@ -110,7 +110,7 @@ public class Car {
 	 * Calculate cars new position.
 	 */
 	public void calculatePos() {
-		xdot += xaccel;
+		xdot = xaccel;
 		
 		if (xdot < 0) {
 			xdot = 0;

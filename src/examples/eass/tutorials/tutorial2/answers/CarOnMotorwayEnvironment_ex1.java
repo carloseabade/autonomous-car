@@ -85,7 +85,7 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				}
 				
 				
-			} else if (socket.pendingInput() && x<(lane*2-2)) {
+			} else if (socket.pendingInput() && x<(lane*3)) {
 				try {
 					while (socket.pendingInput()) {
 						x = socket.readInt();
@@ -104,10 +104,10 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 									
 				addUniquePercept("xpos", xpos);
 				
-				System.out.println(lane*2-2);
+				System.out.println(lane*3);
 				System.out.println("pos. carro: "+x);
 				
-			} else if(socket.pendingInput() && x==(lane*2-2)) {
+			} else if(socket.pendingInput() && x==(lane*3)) {
 				
 				try {
 					while (socket.pendingInput()) {
@@ -122,8 +122,8 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 					AJPFLogger.warning(logname, e.getMessage());
 				} 
 				
-				//System.out.println(lane*2-2);
-				//System.out.println("pos. carro: "+x);
+				System.out.println(lane*3);
+				System.out.println("pos. carro: "+x);
 				
 				
 				Literal lane2 = new Literal("lane2");
@@ -139,17 +139,13 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 		}
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see eass.mas.DefaultEASSEnvironment#executeAction(java.lang.String, ail.syntax.Action)
-	 */
 	public Unifier executeAction(String agName, Action act) throws AILexception {
 		Unifier u = new Unifier();
 		
 		if (act.getFunctor().equals("finished")) {
 			finished = true;
 		} else if (act.getFunctor().equals("change_lane")) {
-			socket.writeInt(1);		
+			socket.writeInt(1);	
 		} else if (act.getFunctor().equals("stay_in_lane")) {
 			socket.writeInt(-1);
 		}
