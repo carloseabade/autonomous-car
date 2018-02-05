@@ -8,15 +8,15 @@ import ail.util.AILSocketServer;
  *
  */
 public class Car {
-	private double x, y, xrel, yrel;
-	private double xdot = 0, ydot = 5;
-	private double xaccel = 0;
+	private int x, y, xrel, yrel;
+	private int xdot = 0, ydot = 2;
+	private int xaccel = 0;
 	
 	/**
 	 * width & length in meters.
 	 */
-	private Double width = 2.19;
-	private Double length = 4.98;
+	private int width = 2;
+	private int length = 5;
 	
 	private int INITIAL_X, INITIAL_Y, B_WIDTH, B_HEIGHT;
 	
@@ -40,11 +40,11 @@ public class Car {
 	 * @param externalcontrol
 	 */
 	public Car (int xi, int yi, int bw, int bh, boolean externalcontrol) {
-		x = xi-((width.intValue()*5)/2);
+		x = xi-((width*5)/2);
 		y = yi;
-		xrel = xi-((width.intValue()*5)/2);
+		xrel = xi-((width*5)/2);
 		yrel = yi;
-		INITIAL_X = xi-((width.intValue()*5)/2);
+		INITIAL_X = xi-((width*5)/2);
 		INITIAL_Y = yi;
 		B_WIDTH = bw;
 		B_HEIGHT = bh;
@@ -58,11 +58,11 @@ public class Car {
 
 	}
 	
-	public Double getWidth() {
+	public int getWidth() {
 		return width;
 	}
 	
-	public Double getLength() {
+	public int getLength() {
 		return length;
 	}
 	
@@ -70,7 +70,7 @@ public class Car {
 	 * Getter for x coordinate of car.
 	 * @return
 	 */
-	public double getX() {
+	public int getX() {
 		return xrel;
 	}
 	
@@ -78,7 +78,7 @@ public class Car {
 	 * Getter for y coordinate of car.
 	 * @return
 	 */
-	public double getY() {
+	public int getY() {
 		return yrel;
 	}
 	
@@ -86,7 +86,7 @@ public class Car {
 	 * Getter for speed in the y direction.
 	 * @return
 	 */
-	public double getYDot() {
+	public int getYDot() {
 		return ydot;
 	}
 	
@@ -94,7 +94,7 @@ public class Car {
 	 * Setter for the y speed.
 	 * @param speed
 	 */
-	public void setYDot(double speed) {
+	public void setYDot(int speed) {
 		ydot = speed;
 	}
 	
@@ -102,7 +102,7 @@ public class Car {
 	 * Getter for speed in the x direction.
 	 * @return
 	 */
-	public double getYTot() {
+	public int getYTot() {
 		return y;
 	}
 	
@@ -111,7 +111,7 @@ public class Car {
 	 */
 	public void calculatePos() {
 		xdot += xaccel;
-				
+		
 		if (xdot < 0) {
 			xdot = 0;
 		}
@@ -124,7 +124,7 @@ public class Car {
 		y += ydot;
 		xrel += xdot;
 		yrel += ydot;
-
+		
 		if (yrel > B_HEIGHT) {
 			yrel = INITIAL_Y;
 		}
@@ -164,7 +164,7 @@ public class Car {
 	private void readValues() {
 		if (controlled) {
 			try {
-				xaccel = socketserver.readDouble();
+				xaccel = socketserver.readInt();
 			} catch (Exception e) {
 				System.err.println("READ ERROR: Closing socket");
 				close();
@@ -180,13 +180,13 @@ public class Car {
 		if ( controlled ) {
 			try {
 				if (include_total_distance) {
-					socketserver.writeDouble(x);
-					socketserver.writeDouble(y);
+					socketserver.writeInt(x);
+					socketserver.writeInt(y);
 				}
-				socketserver.writeDouble(xrel);
-				socketserver.writeDouble(yrel);
-				socketserver.writeDouble(xdot);
-				socketserver.writeDouble(ydot);
+				socketserver.writeInt(xrel);
+				socketserver.writeInt(yrel);
+				socketserver.writeInt(xdot);
+				socketserver.writeInt(ydot);
 				socketserver.writeInt(started);
 				socketserver.writeInt(INITIAL_X);
 			}  catch (Exception e) {

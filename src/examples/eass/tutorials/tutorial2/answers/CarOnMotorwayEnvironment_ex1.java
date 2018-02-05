@@ -31,10 +31,8 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 	 * Has the environment finished?
 	 */
 	private boolean finished = false;
-	
-	private boolean in_lane_1 = true;
-	private boolean in_lane_2 = false;
-	private boolean in_transit = false;
+
+	int x = -1;
 
 	/**
 	 * Constructor.
@@ -66,27 +64,34 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 		}
 	}
 
-	int lane;
+	int lane = -1;
+	int started;
 	/**
 	 * Reading the values from the sockets and turning them into perceptions.
 	 */
 	public void readPredicatesfromSocket() {
 		
 		try {
-			if (socket.pendingInput()) {
-
-				double x = socket.readDouble();
-				socket.readDouble();
-				double xdot = socket.readDouble();
-				double ydot = socket.readDouble();
-				int started = socket.readInt();
+			if (socket.pendingInput() && x == -1 && lane == -1){
+				x = socket.readInt();
+				socket.readInt();
+				socket.readInt();
+				socket.readInt();
+				started = socket.readInt();
 				lane = socket.readInt();
+				
+				if (started > 0) {
+					addPercept(new Literal("started"));
+				}
+				
+				
+			} else if (socket.pendingInput() && x<(lane*2-2)) {
 				try {
 					while (socket.pendingInput()) {
-						x = socket.readDouble();
-						socket.readDouble();
-						xdot = socket.readDouble();
-						ydot = socket.readDouble();
+						x = socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						socket.readInt();
 						started = socket.readInt();	
 						lane = socket.readInt();
 					}
@@ -95,14 +100,39 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				} 
 				
 				Literal xpos = new Literal("xpos");
-				xpos.addTerm(new NumberTermImpl(x));
-				
-				if (started > 0) {
-					addPercept(new Literal("started"));
-				}
+				xpos.addTerm(new NumberTermImpl((int)x));
 									
 				addUniquePercept("xpos", xpos);
-
+				
+				System.out.println(lane*2-2);
+				System.out.println("pos. carro: "+x);
+				
+			} else if(socket.pendingInput() && x==(lane*2-2)) {
+				
+				try {
+					while (socket.pendingInput()) {
+						socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						started = socket.readInt();	
+						socket.readInt();
+					}
+				} catch (Exception e) {
+					AJPFLogger.warning(logname, e.getMessage());
+				} 
+				
+				//System.out.println(lane*2-2);
+				//System.out.println("pos. carro: "+x);
+				
+				
+				Literal lane2 = new Literal("lane2");
+				lane2.addTerm(new NumberTermImpl(lane*2-2));
+				
+				
+				addUniquePercept("lane2", lane2);
+				socket.writeInt(-1);
+				
 			}
 		} catch (Exception e) {
 			AJPFLogger.warning(logname, e.getMessage());
@@ -116,45 +146,12 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 	public Unifier executeAction(String agName, Action act) throws AILexception {
 		Unifier u = new Unifier();
 		
-		if (act.getFunctor().equals("maintain_speed")) {
-			socket.writeDouble(0.0);
-		} else if (act.getFunctor().equals("finished")) {
+		if (act.getFunctor().equals("finished")) {
 			finished = true;
-		} else if (act.getFunctor().equals("change_lane1")) {
-			if(in_lane_2) {
-				removePercept(agName, new Predicate("in_lane_2"));
-				in_transit = true;
-			}
-			socket.writeDouble(-0.2);
-		} else if (act.getFunctor().equals("change_lane2")) {
-			if(in_lane_1) {
-				removePercept(agName, new Predicate("in_lane_1"));
-				in_transit = true;
-			}
-			socket.writeDouble(0.2);
-			
-			Literal lane2 = new Literal("lane2");
-			lane2.addTerm(new NumberTermImpl(lane*4));
-			addUniquePercept("lane2", lane2);
-			
+		} else if (act.getFunctor().equals("change_lane")) {
+			socket.writeInt(1);		
 		} else if (act.getFunctor().equals("stay_in_lane")) {
-			socket.writeDouble(-0.1);
-			if(in_lane_1 && in_transit) {
-				in_lane_1 = false;
-				in_lane_2 = true;
-				
-				
-			}
-			if(in_lane_2 && in_transit) {
-				in_lane_2 = false;
-				in_lane_1 = true;
-				
-				Literal lane1 = new Literal("lane1");
-				lane1.addTerm(new NumberTermImpl(lane*4));
-				addUniquePercept("lane1", lane1);
-
-			}
-			in_transit = false;
+			socket.writeInt(-1);
 		}
 		
 		u.compose(super.executeAction(agName, act));

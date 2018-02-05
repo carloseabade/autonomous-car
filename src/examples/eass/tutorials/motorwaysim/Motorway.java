@@ -1,27 +1,3 @@
-// ----------------------------------------------------------------------------
-// Copyright (C) 2015 Louise A. Dennis,  and Michael Fisher
-//
-// This file is part of the Engineering Autonomous Space Software (EASS) Library.
-// 
-// The EASS Library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-// 
-// The EASS Library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public
-// License along with the EASS Library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-// 
-// To contact the authors:
-// http://www.csc.liv.ac.uk/~lad
-//
-//----------------------------------------------------------------------------
-
 package eass.tutorials.motorwaysim;
 
 import java.awt.Color;
@@ -49,7 +25,7 @@ public class Motorway extends JPanel implements Runnable {
 	private Rubble rubble1;
 	private boolean car1control = false;
 	private Lane lane = new Lane();
-	private final int INITIAL_X1 = lane.getWidth().intValue()*5/2;
+	private final int INITIAL_X1 = lane.getWidth()*5/2;
 	private final int INITIAL_Y1 = 0;
 	
 	private boolean started = false;
@@ -108,19 +84,19 @@ public class Motorway extends JPanel implements Runnable {
 	 * @param g
 	 */
 	private void drawMotorway(Graphics g) {
-		Double d1 = car1.getX();
-		Double d2 = car1.getY();
+		int d1 = car1.getX();
+		int d2 = car1.getY();
 		
-		g.drawRect(d1.intValue(), d2.intValue(), car1.getWidth().intValue()*5, car1.getLength().intValue()*5);
-		g.drawLine(lane.getWidth().intValue()*5, 0, lane.getWidth().intValue()*5, B_HEIGHT);
-		g.drawLine(lane.getWidth().intValue()*5*2, 0, lane.getWidth().intValue()*5*2, B_HEIGHT);
+		g.drawRect(d1, d2, car1.getWidth()*5, car1.getLength()*5);
+		g.drawLine(lane.getWidth()*5, 0, lane.getWidth()*5, B_HEIGHT);
+		g.drawLine(lane.getWidth()*5*2, 0, lane.getWidth()*5*2, B_HEIGHT);
 		
 		g.fillRect(rubble1.getX(), rubble1.getY(), 10, 10);
 		
-		Double ydot = car1.getYDot();
+		int ydot = car1.getYDot();
 		
-		g.drawString("Speed Car 1: " + ydot.intValue(), 150, 20);
-		g.drawString("Distance Car 1: " + d2.intValue(), 150, 50);
+		g.drawString("Speed Car 1: " + ydot, 150, 20);
+		g.drawString("Distance Car 1: " + d2, 150, 50);
 		
 		Toolkit.getDefaultToolkit().sync();
 	}

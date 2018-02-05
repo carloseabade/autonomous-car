@@ -4,8 +4,7 @@ EASS
 
 :Initial Beliefs:
 
-:Initial Goals:
-		
+:Initial Goals:		
 
 :Plans: 
 /* Default plans for handling messages */
@@ -16,17 +15,12 @@ EASS
 +started : {True} <-
 	assert_shared(start);
 
-+xpos(L) : {B lane2(X), X < L} <-
++xpos(L) : {B lane2(X), X == L} <-
 	assert_shared(in_lane_2);
 	
-+xpos(L) : {B lane1(X), X > L} <-
-	assert_shared(in_lane_1);
-	
-+! maintain_speed [perform] : {true} <- maintain_speed;
 +! finished [perform] : {True} <- finished;
-+! change_lane2 [perform] : {True} <- change_lane2;
++! change_lane [perform] : {True} <- change_lane;
 +! stay_in_lane [perform] : {True} <- stay_in_lane;
-+! change_lane1 [perform] : {True} <- change_lane1;
 
 :name: car
 			
@@ -37,15 +31,12 @@ EASS
 :Plans: 
 
 +start: {True} <-
-	perf(maintain_speed),
-	perf(change_lane2);
+	assert_shared(in_lane_1);
+
++in_lane_1: {True} <-
+	perf(change_lane);
 	
 +in_lane_2: {True} <-
 	perf(stay_in_lane);
+
 	
-+stay_in_lane: {True} <-
-	perf(change_lane1);
-	
-+in_lane_1: {True} <-
-	perf(stay_in_lane);
-	perf(finished);
