@@ -35,6 +35,7 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 	int x = -1;
 	boolean going_lane1 = false;
 	boolean going_lane2 = false;
+	boolean stop = false;
 	
 	int lane = -1;
 	int started;
@@ -117,9 +118,10 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				
 				removePercept("lane2", lane2);
 				
-				//if(going_lane1) {
-				//	socket.writeInt(0);
-				//}
+				if(going_lane1 && stop) {
+					socket.writeInt(0);
+					stop = false;
+				}
 				
 				going_lane2 = true;
 				going_lane1 = false;
@@ -200,6 +202,7 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				
 				if(going_lane2) {
 					socket.writeInt(0);
+					stop = true;
 				}
 				
 				going_lane1 = true;
