@@ -17,6 +17,9 @@ EASS
 
 +xpos(L) : {B lane2(X), X == L} <-
 	assert_shared(in_lane_2);
+
++xpos(L) : {B lane1(X), X == L} <-
+	assert_shared(in_lane_1);
 	
 +! finished [perform] : {True} <- finished;
 +! change_lane [perform] : {True} <- change_lane;
@@ -30,13 +33,10 @@ EASS
 		
 :Plans: 
 
-+start: {True} <-
-	assert_shared(in_lane_1);
-
 +in_lane_1: {True} <-
 	perf(change_lane);
 	
 +in_lane_2: {True} <-
-	perf(stay_in_lane);
+	perf(change_lane);
 
 	

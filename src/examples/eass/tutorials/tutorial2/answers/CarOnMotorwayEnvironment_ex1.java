@@ -33,6 +33,11 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 	private boolean finished = false;
 
 	int x = -1;
+	boolean going_lane1 = false;
+	boolean going_lane2 = false;
+	
+	int lane = -1;
+	int started;
 
 	/**
 	 * Constructor.
@@ -64,8 +69,7 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 		}
 	}
 
-	int lane = -1;
-	int started;
+
 	/**
 	 * Reading the values from the sockets and turning them into perceptions.
 	 */
@@ -85,7 +89,43 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				}
 				
 				
-			} else if (socket.pendingInput() && x<(lane*3)) {
+			} else if(socket.pendingInput() && x == lane) {
+				
+				try {
+					while (socket.pendingInput()) {
+						socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						started = socket.readInt();	
+						socket.readInt();
+					}
+				} catch (Exception e) {
+					AJPFLogger.warning(logname, e.getMessage());
+				} 
+				
+				Literal lane1 = new Literal("lane1");
+				lane1.addTerm(new NumberTermImpl(lane));
+				
+				addUniquePercept("lane1", lane1);
+				
+				Literal in_lane_2 = new Literal("in_lane_2");
+				removePercept("in_lane_2", in_lane_2);
+				
+				Literal lane2 = new Literal("lane2");
+				lane2.addTerm(new NumberTermImpl(lane*3));
+				
+				removePercept("lane2", lane2);
+				
+				//if(going_lane1) {
+				//	socket.writeInt(0);
+				//}
+				
+				going_lane2 = true;
+				going_lane1 = false;
+				
+				
+			} else if (socket.pendingInput() && x<(lane*3) && going_lane2) {
 				try {
 					while (socket.pendingInput()) {
 						x = socket.readInt();
@@ -104,8 +144,29 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 									
 				addUniquePercept("xpos", xpos);
 				
-				System.out.println(lane*3);
-				System.out.println("pos. carro: "+x);
+				//System.out.println(lane*3);
+				//System.out.println("pos. carro: "+x);
+				
+			} else if (socket.pendingInput() && x>=lane && going_lane1) {
+				try {
+					while (socket.pendingInput()) {
+						x = socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						started = socket.readInt();	
+						lane = socket.readInt();
+					}
+				} catch (Exception e) {
+					AJPFLogger.warning(logname, e.getMessage());
+				} 
+				
+				Literal xpos = new Literal("xpos");
+				xpos.addTerm(new NumberTermImpl((int)x));
+									
+				addUniquePercept("xpos", xpos);
+				
+				//System.out.println("pos. carro: "+x);
 				
 			} else if(socket.pendingInput() && x==(lane*3)) {
 				
@@ -122,16 +183,27 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 					AJPFLogger.warning(logname, e.getMessage());
 				} 
 				
-				System.out.println(lane*3);
-				System.out.println("pos. carro: "+x);
-				
-				
 				Literal lane2 = new Literal("lane2");
-				lane2.addTerm(new NumberTermImpl(lane*2-2));
-				
+				lane2.addTerm(new NumberTermImpl(lane*3));
 				
 				addUniquePercept("lane2", lane2);
-				socket.writeInt(-1);
+				
+				System.out.println("pos. carro: "+x);
+				System.out.println(lane*3);
+				
+				Literal in_lane_1 = new Literal("in_lane_1");
+				removePercept("in_lane_1", in_lane_1);
+				
+				Literal lane1 = new Literal("lane1");
+				lane1.addTerm(new NumberTermImpl(lane));
+				removePercept("lane_1", lane1);
+				
+				if(going_lane2) {
+					socket.writeInt(0);
+				}
+				
+				going_lane1 = true;
+				going_lane2 = false;
 				
 			}
 		} catch (Exception e) {
@@ -145,9 +217,13 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 		if (act.getFunctor().equals("finished")) {
 			finished = true;
 		} else if (act.getFunctor().equals("change_lane")) {
-			socket.writeInt(1);	
+			if (going_lane2) {
+				socket.writeInt(1);
+			} else if (going_lane1) {
+				socket.writeInt(-1);
+			}
 		} else if (act.getFunctor().equals("stay_in_lane")) {
-			socket.writeInt(-1);
+			socket.writeInt(0);
 		}
 		
 		u.compose(super.executeAction(agName, act));

@@ -112,7 +112,7 @@ public class Car {
 	public void calculatePos() {
 		xdot = xaccel;
 		
-		if (xdot < 0) {
+		if (xdot == 0) {
 			xdot = 0;
 		}
 		
