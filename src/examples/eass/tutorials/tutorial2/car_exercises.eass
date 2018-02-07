@@ -13,16 +13,11 @@ EASS
 +.received(:achieve, G): {True} <- +!G [achieve];
 
 +started : {True} <-
-	assert_shared(start);
-
-+xpos(L) : {B lane2(X), X == L} <-
-	assert_shared(in_lane_2);
-
-+xpos(L) : {B lane1(X), X == L} <-
-	assert_shared(in_lane_1);
+	assert_shared(start), assert_shared(in_lane_1);
 	
 +! finished [perform] : {True} <- finished;
-+! change_lane [perform] : {True} <- change_lane;
++! left [perform] : {True} <- remove_shared(in_lane_1), left, assert_shared(in_lane_2);
++! right [perform] : {True} <- remove_shared(in_lane_2), right, assert_shared(in_lane_1);
 +! stay_in_lane [perform] : {True} <- stay_in_lane;
 
 :name: car
@@ -34,9 +29,9 @@ EASS
 :Plans: 
 
 +in_lane_1: {True} <-
-	perf(change_lane);
-	
+	perf(left);
+
 +in_lane_2: {True} <-
-	perf(change_lane);
+	perf(right);
 
 	

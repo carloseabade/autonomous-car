@@ -16,7 +16,7 @@ public class Motorway extends JPanel implements Runnable {
 	
 	static final long serialVersionUID = 0;
 	
-	private final int B_WIDTH = 800;
+	private final int B_WIDTH = 500;
 	private final int B_HEIGHT = 600;
 	private final int DELAY = 25;
 	
