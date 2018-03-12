@@ -162,21 +162,26 @@ public class Car {
 	 * Read in values from socket.
 	 */
 	private void readValues() {
+		long startTime = System.currentTimeMillis();
 		if (controlled) {
 			try {
 				xaccel = socketserver.readInt();
+				ydot = socketserver.readInt();
 			} catch (Exception e) {
 				System.err.println("READ ERROR: Closing socket");
 				close();
 			}
 		}
-
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		if(elapsedTime!=0)System.out.println("Car.readValues: "+elapsedTime);
 	}
 	
 	/**
 	 * Write values to socket.
 	 */
 	public void writeValues() {
+		long startTime = System.currentTimeMillis();
 		if ( controlled ) {
 			try {
 				if (include_total_distance) {
@@ -194,6 +199,9 @@ public class Car {
 				close();
 			}
 		}
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		if(elapsedTime!=0)System.out.println("Car.writeValues: "+elapsedTime);
 	}
 	
 	/**

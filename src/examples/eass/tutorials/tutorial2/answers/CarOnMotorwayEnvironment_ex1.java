@@ -70,13 +70,14 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 	 * Reading the values from the sockets and turning them into perceptions.
 	 */
 	int x;
+	int y;
 	public void readPredicatesfromSocket() {
-		
+		long startTime = System.currentTimeMillis();
 		try {
 			if (socket.pendingInput()) {
 
 				x = socket.readInt();
-				socket.readInt();
+				y = socket.readInt();
 				socket.readInt();
 				socket.readInt();
 				started = socket.readInt();
@@ -85,7 +86,7 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				try {
 					while (socket.pendingInput()) {
 						x = socket.readInt();
-						socket.readInt();
+						y = socket.readInt();
 						socket.readInt();
 						socket.readInt();
 						started = socket.readInt();
@@ -110,26 +111,48 @@ public class CarOnMotorwayEnvironment_ex1 extends DefaultEASSEnvironment {
 				Literal xpos = new Literal("xpos");
 				xpos.addTerm(new NumberTermImpl(x));
 				addUniquePercept("xpos", xpos);
+				
+				Literal ypos = new Literal("ypos");
+				ypos.addTerm(new NumberTermImpl(y));
+				addUniquePercept("ypos", ypos);
+				
+				System.out.println(ypos);
 			}
 		} catch (Exception e) {
 			AJPFLogger.warning(logname, e.getMessage());
 		}
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		if(elapsedTime>2)System.out.println("Env.readValues: "+elapsedTime);
 	}
 	
 	public Unifier executeAction(String agName, Action act) throws AILexception {
+		long startTime = System.currentTimeMillis();
+
 		Unifier u = new Unifier();
 		
 		if (act.getFunctor().equals("finished")) {
 			finished = true;
 		} else if (act.getFunctor().equals("left")) {
 			socket.writeInt(1);
+			socket.writeInt(2);
 		} else if (act.getFunctor().equals("right")) {
 			socket.writeInt(-1);
+			socket.writeInt(2);
 		}else if (act.getFunctor().equals("stay_in_lane")) {
+			socket.writeInt(0);
+			socket.writeInt(2);
+		}else if (act.getFunctor().equals("stop")) {
+			socket.writeInt(0);
 			socket.writeInt(0);
 		}
 		
 		u.compose(super.executeAction(agName, act));
+		
+		long stopTime = System.currentTimeMillis();
+		long elapsedTime = stopTime - startTime;
+		if(elapsedTime>2)System.out.println("Env.writeValues: "+elapsedTime);
+		
 		return u;
 		
 	}

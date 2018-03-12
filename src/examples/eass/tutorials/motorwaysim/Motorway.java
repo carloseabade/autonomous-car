@@ -91,7 +91,7 @@ public class Motorway extends JPanel implements Runnable {
 		g.drawLine(lane.getWidth()*5, 0, lane.getWidth()*5, B_HEIGHT);
 		g.drawLine(lane.getWidth()*5*2, 0, lane.getWidth()*5*2, B_HEIGHT);
 		
-		g.fillRect(rubble1.getX(), rubble1.getY(), 10, 10);
+		//g.fillRect(rubble1.getX(), rubble1.getY(), 10, 10);
 		
 		int ydot = car1.getYDot();
 		
