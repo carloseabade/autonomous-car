@@ -1,0 +1,22 @@
+GWENDOLEN
+
+:name: car
+			
+:Initial Beliefs:
+													
+:Initial Goals:
+		
+:Plans: 
+
++started: {True} <-
+	+!at_speed_limit[achieve];
+
++! at_speed_limit [achieve] : {True} <-
+	accelerate,
+	*at_speed_limit,
+	.send(car2, :achieve, at_speed_limit);
+
++at_speed_limit: {True} <-
+	maintain_speed,
+	finished;
+	

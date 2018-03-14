@@ -1,12 +1,7 @@
-package eass.tutorials.motorwaysim;
+package autonomousCarEass;
 
 import ail.util.AILSocketServer;
 
-/**
- * A class for a car on a simple motorway simulation that may be controlled by an agent.
- * @author lad
- *
- */
 public class Car {
 	private int x, y, xrel, yrel;
 	private int xdot = 0, ydot = 2;

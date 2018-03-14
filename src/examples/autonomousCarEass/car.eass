@@ -18,11 +18,11 @@ EASS
 +ypos(X) : {~B stop, 100 < X} <-
 	assert_shared(stop);
 		
-+! finished [perform] : {True} <- finished;
 +! left [perform] : {True} <- remove_shared(in_lane_1), left, assert_shared(in_lane_2);
 +! right [perform] : {True} <- remove_shared(in_lane_2), right, assert_shared(in_lane_1);
 +! stay_in_lane [perform] : {True} <- stay_in_lane;
 +! stop [perform] : {True} <- stop; 
++! finished [perform] : {True} <- finished;
 
 :name: car
 			
@@ -37,3 +37,4 @@ EASS
 	
 +stop: {True} <-
 	perf(stop);
+

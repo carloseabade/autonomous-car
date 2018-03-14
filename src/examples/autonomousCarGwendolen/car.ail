@@ -1,0 +1,7 @@
+env=autonomousCarGwendolen.CarOnMotorwayEnvironment
+
+mas.agent.1.file = /src/examples/autonomousCarGwendolen/car.gwen
+mas.agent.1.builder = gwendolen.GwendolenAgentBuilder
+
+log.warning = ajpf.MCAPLAgent
+log.format = brief
