@@ -17,5 +17,4 @@ GWENDOLEN
 
 +at_speed_limit: {True} <-
 	maintain_speed,
-	finished;
 	
