@@ -5,6 +5,7 @@ import java.io.IOException;
 import ail.mas.DefaultEnvironment;
 import ail.mas.scheduling.NActionScheduler;
 import ail.syntax.Literal;
+import ail.syntax.NumberTermImpl;
 import ail.syntax.Unifier;
 import ail.syntax.Action;
 import ail.util.AILSocketClient;
@@ -15,7 +16,7 @@ import ajpf.util.AJPFLogger;
 
 public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAPLJobber {
 	
-	String logname = "gwendolen.verifiableautonomoussystems.chapter5.CarOnMotorwayEnvironment";
+	String logname = "autonomousCarGwendolen";
 		
 	/**
 	 * Socket that connects to the Simulator.
@@ -27,11 +28,11 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	 */
 	private boolean finished = false;
 	
-	private int speed_limit = 5;
-
-	/**
-	 * Constructor.
-	 */
+	private int started;
+	private int lane;
+	private int x;
+	private int y;
+	
 	public CarOnMotorwayEnvironment() {
 		super();
 		MCAPLScheduler s = new NActionScheduler(100);
@@ -69,58 +70,48 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 		try {
 			if (socket.pendingInput()) {
 
-				socket.readDouble();
-				socket.readDouble();
-				@SuppressWarnings("unused")
-				double c1_xdot = socket.readDouble();
-				double c1_ydot = socket.readDouble();
-				int c1_started = socket.readInt();
-				
-				socket.readDouble();
-				socket.readDouble();
-				@SuppressWarnings("unused")
-				double c2_xdot = socket.readDouble();
-				double c2_ydot = socket.readDouble();
-				int c2_started = socket.readInt();
-				
-				
+				x = socket.readInt();
+				y = socket.readInt();
+				socket.readInt();
+				socket.readInt();
+				started = socket.readInt();
+				lane = socket.readInt();
+								
 				try {
 					while (socket.pendingInput()) {
-						socket.readDouble();
-						socket.readDouble();
-						c1_xdot = socket.readDouble();
-						c1_ydot = socket.readDouble();
-						c1_started = socket.readInt();			
-						socket.readDouble();
-						socket.readDouble();
-						c2_xdot = socket.readDouble();
-						c2_ydot = socket.readDouble();
-						c2_started = socket.readInt();			
+						x = socket.readInt();
+						y = socket.readInt();
+						socket.readInt();
+						socket.readInt();
+						started = socket.readInt();
+						lane = socket.readInt();		
 					}
 				} catch (Exception e) {
 					AJPFLogger.warning(logname, e.getMessage());
 				} 
 				
 								
-				if (c1_started > 0) {
-					addPercept("car1", new Literal("started"));
-				}
-				
-				if (c2_started > 0) {
-					addPercept("car2", new Literal("started"));
-				}
+				if (started > 0) {
+					addPercept(new Literal("started"));
+					
+					Literal lane1 = new Literal("lane1");
+					lane1.addTerm(new NumberTermImpl(lane));
+					addPercept("lane1", lane1);
 
-				if (c1_ydot < speed_limit) {
-					removePercept("car1", new Literal("at_speed_limit"));
-				} else {
-					addPercept("car1", new Literal("at_speed_limit"));
+					Literal lane2 = new Literal("lane2");
+					lane2.addTerm(new NumberTermImpl(lane*3));
+					addPercept("lane2", lane2);
 				}
 				
-				if (c2_ydot < speed_limit) {
-					removePercept("car2", new Literal("at_speed_limit"));
-				} else {
-					addPercept("car2", new Literal("at_speed_limit"));
-				}
+				Literal xpos = new Literal("xpos");
+				xpos.addTerm(new NumberTermImpl(x));
+				addPercept("xpos", xpos);
+				
+				Literal ypos = new Literal("ypos");
+				ypos.addTerm(new NumberTermImpl(y));
+				addPercept("ypos", ypos);
+				
+				System.out.println(ypos);
 
 			}
 		} catch (Exception e) {
@@ -128,52 +119,33 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 		}
 	}
 	
-	
-	double car1_xaccel = 0.0;
-	double car1_yaccel = 0.0;
-	double car2_xaccel = 0.0;
-	double car2_yaccel = 0.0;
 	/*
 	 * (non-Javadoc)
 	 * @see eass.mas.DefaultEASSEnvironment#executeAction(java.lang.String, ail.syntax.Action)
 	 */
 	public Unifier executeAction(String agName, Action act) throws AILexception {
 
-		if (act.getFunctor().equals("accelerate")) {
-			if (agName.equals("car1")) {
-				car1_yaccel = 0.01;
-			} else {
-				car2_yaccel = 0.01;
-			}
-			socket.writeDouble(car1_xaccel);
-			socket.writeDouble(car1_yaccel);
-			socket.writeDouble(car2_xaccel);
-			socket.writeDouble(car2_yaccel);
-		} else if (act.getFunctor().equals("decelerate")) {
-			if (agName.equals("car1")) {
-				car1_yaccel = -0.1;
-			} else {
-				car2_yaccel = -0.1;
-			}
-			socket.writeDouble(car1_xaccel);
-			socket.writeDouble(car1_yaccel);
-			socket.writeDouble(car2_xaccel);
-			socket.writeDouble(car2_yaccel);
-		} else if (act.getFunctor().equals("maintain_speed")) {
-			if (agName.equals("car1")) {
-				car1_yaccel = 0.0;
-			} else {
-				car2_yaccel = 0.0;
-			}
-			socket.writeDouble(car1_xaccel);
-			socket.writeDouble(car1_yaccel);
-			socket.writeDouble(car2_xaccel);
-			socket.writeDouble(car2_yaccel);
-		} else if (act.getFunctor().equals("finished")) {
-				finished = true;
+		Unifier u = new Unifier();
+		
+		if (act.getFunctor().equals("finished")) {
+			finished = true;
+		} else if (act.getFunctor().equals("left")) {
+			socket.writeInt(1);
+			socket.writeInt(2);
+		} else if (act.getFunctor().equals("right")) {
+			socket.writeInt(-1);
+			socket.writeInt(2);
+		}else if (act.getFunctor().equals("stay_in_lane")) {
+			socket.writeInt(0);
+			socket.writeInt(2);
+		}else if (act.getFunctor().equals("stop")) {
+			socket.writeInt(0);
+			socket.writeInt(0);
 		}
 		
-		return super.executeAction(agName, act);
+		u.compose(super.executeAction(agName, act));
+		
+		return u;
 	}
 	
 	/*
@@ -213,6 +185,10 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	@Override
 	public String getName() {
 		return "CarOnMotorwayEnvironment";
+	}
+	
+	public void finalize() {
+		socket.close();
 	}
 
 }

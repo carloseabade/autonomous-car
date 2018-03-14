@@ -7,39 +7,23 @@ import java.awt.Toolkit;
 
 import javax.swing.JPanel;
 
-import ail.util.AILSocketServer;
-
-/**
- * Simulation of a Motorway as a simple demonstrator for various systems.
- * @author lad
- *
- */
 public class Motorway extends JPanel implements Runnable {
 	
 	static final long serialVersionUID = 0;
 	
-	private final int B_WIDTH = 300;
-	private final int B_HEIGHT = 550;
-	private final int INITIAL_X1 = 10;
-	private final int INITIAL_Y1 = 0;
-	private final int INITIAL_C2_X1 = 40;
-	private final int INITIAL_C2_Y1 = 0;
+	private final int B_WIDTH = 500;
+	private final int B_HEIGHT = 600;
 	private final int DELAY = 25;
 	
 	private Thread animator;
 	private Car car1;
 	private boolean car1control = false;
-	private Car car2;
+	private Lane lane = new Lane();
+	private final int INITIAL_X1 = lane.getWidth()*5/2;
+	private final int INITIAL_Y1 = 0;
 	
 	private boolean started = false;
 	private boolean running = true;
-	private boolean secondcar = false;
-	
-	/**
-	 * Socket that connects to the MAS environment.
-	 */
-	protected AILSocketServer socketserver;
-
 	
 	/**
 	 * Constructor.
@@ -50,7 +34,7 @@ public class Motorway extends JPanel implements Runnable {
 	}
 		
 	/**
-	 * Initialisation.
+	 * Initialization.
 	 * @param args
 	 */
 	private void initMotorway(String control) {
@@ -62,14 +46,9 @@ public class Motorway extends JPanel implements Runnable {
 			car1control = true;
 		}
 		
-		
-		car1 = new Car(INITIAL_X1, INITIAL_Y1, B_WIDTH, B_HEIGHT, car1control, 1);
+		car1 = new Car(INITIAL_X1, INITIAL_Y1, B_WIDTH, B_HEIGHT, car1control);
 		repaint();
-		if (car1control) {
-			System.err.println("Motorway Sim waiting Socket Connection");
-			socketserver = new AILSocketServer();
-			System.err.println("Got Socket Connection");
-		}
+		
 	}
 	
 	/*
@@ -98,36 +77,19 @@ public class Motorway extends JPanel implements Runnable {
 	 * @param g
 	 */
 	private void drawMotorway(Graphics g) {
-		Double d1 = car1.getX();
-		Double d2 = car1.getY();
+		int d1 = car1.getX();
+		int d2 = car1.getY();
 		
-		g.drawRect(d1.intValue(), d2.intValue(), 10, 15);
-		g.drawLine(30, 0, 30, B_HEIGHT);
-		g.drawLine(60, 0, 60, B_HEIGHT);
+		g.drawRect(d1, d2, car1.getWidth()*5, car1.getLength()*5);
+		g.drawLine(lane.getWidth()*5, 0, lane.getWidth()*5, B_HEIGHT);
+		g.drawLine(lane.getWidth()*5*2, 0, lane.getWidth()*5*2, B_HEIGHT);
 		
-		Double ydot = car1.getYDot();
-		Double cydot = 0.0;
-		Double dc2 = 0.0;
+		//g.fillRect(rubble1.getX(), rubble1.getY(), 10, 10);
 		
-		if (secondcar) {
-			Double dc1 = car2.getX();
-			dc2 = car2.getY();
-			
-			g.drawRect(dc1.intValue(), dc2.intValue(), 10, 15);
-			g.drawLine(30, 0, 30, B_HEIGHT);
-			g.drawLine(60, 0, 60, B_HEIGHT);
-			
-			cydot = car2.getYDot();
-			
-		}
+		int ydot = car1.getYDot();
 		
-		g.drawString("Speed Car 1: " + ydot.intValue(), 150, 20);
-		g.drawString("Distance Car 1: " + d2.intValue(), 150, 50);
-		
-		if (secondcar) {
-			g.drawString("Speed Car 2: " + cydot.intValue(), 150, 100);
-			g.drawString("Distance Car 2: " + dc2.intValue(), 150, 130);			
-		}
+		g.drawString("Speed Car 1: " + ydot, 150, 20);
+		g.drawString("Distance Car 1: " + d2, 150, 50);
 		
 		Toolkit.getDefaultToolkit().sync();
 	}
@@ -138,12 +100,8 @@ public class Motorway extends JPanel implements Runnable {
 	private void cycle() {
 		
 		car1.calculatePos();
-
-		if (secondcar) {
-			car2.calculatePos();
-		}
+		car1.updateParameters();
 		
-		updateParameters();
 	}
 	
 	/*
@@ -188,9 +146,6 @@ public class Motorway extends JPanel implements Runnable {
 		started = true;
 		car1.start();
 		
-		if (secondcar) {
-			car2.start();
-		}
 	}
 	
 	public boolean started() {
@@ -202,7 +157,7 @@ public class Motorway extends JPanel implements Runnable {
 	 */
 	public void stop() {
 		running = false;
-		close();
+		car1.close();
 	}
 	
 	/**
@@ -213,13 +168,6 @@ public class Motorway extends JPanel implements Runnable {
 		return car1;
 	}
 	
-	/**
-	 * Return Car 2 object.
-	 * @return
-	 */
-	public Car getCar2() {
-		return car2;
-	}
 	
 	/**
 	 * Configure the motorway for this simulation.
@@ -228,109 +176,7 @@ public class Motorway extends JPanel implements Runnable {
 	public void configure(MotorwayConfig config) {
 		car1.configure(config);
 		
-		if (config.containsKey("car2.control")) {
-			car2 = new Car(INITIAL_C2_X1, INITIAL_C2_Y1, B_WIDTH, B_HEIGHT, car1control, 2);
-			car2.configure(config);
-			secondcar = true;
-		}
 	}
-	
-	/**
-	 * Get control information from external source.
-	 */
-	public void updateParameters() {
-		if (socketserver.allok()) {
-			try {
-				if (socketserver.pendingInput()) {
-					readValues();
-				}
-			} catch (Exception e) {
-				System.err.println(e.getMessage());
-			}
-			
-			writeValues();
- 		} else {
- 			System.err.println("something wrong with socket server");
- 		}
-	}
-	
-	/**
-	 * Read in values from socket.
-	 */
-	private void readValues() {
-		if (car1.isControlled()) {
-			try {
-				car1.setXAccel(socketserver.readDouble());
-				car1.setYAccel(socketserver.readDouble());
-			} catch (Exception e) {
-				System.err.println("READ ERROR: Closing socket");
-				close();
-			}
-		}
-		
-		if (secondcar) {
-			if (car2.isControlled()) {
-				try {
-					car2.setXAccel(socketserver.readDouble());
-					car2.setYAccel(socketserver.readDouble());
-				} catch (Exception e) {
-					System.err.println("READ ERROR: Closing socket");
-					close();
-				}
-				
-			}
-		}
-
-	}
-	
-	/**
-	 * Write values to socket.
-	 */
-	public void writeValues() {
-		if ( car1.isControlled() ) {
-			try {
-				if (car1.include_total_distance()) {
-					socketserver.writeDouble(car1.getX());
-					socketserver.writeDouble(car1.getY());
-				}
-				socketserver.writeDouble(car1.getXRel());
-				socketserver.writeDouble(car1.getYRel());
-				socketserver.writeDouble(car1.getXDot());
-				socketserver.writeDouble(car1.getYDot());
-				socketserver.writeInt(car1.started());
-			}  catch (Exception e) {
-				System.err.println("READ ERROR: Closing socket");
-				close();
-			}
-		}
-		
-		if ( car2.isControlled() ) {
-			try {
-				if (car2.include_total_distance()) {
-					socketserver.writeDouble(car2.getX());
-					socketserver.writeDouble(car2.getY());
-				}
-				socketserver.writeDouble(car2.getXRel());
-				socketserver.writeDouble(car2.getYRel());
-				socketserver.writeDouble(car2.getXDot());
-				socketserver.writeDouble(car2.getYDot());
-				socketserver.writeInt(car2.started());
-			}  catch (Exception e) {
-				System.err.println("READ ERROR: Closing socket");
-				close();
-			}
-		}
-
-	}
-
-	/**
-	 * Close up the socket server.
-	 */
-	public void close() {
-		socketserver.close();
-	}
-	
-
 	
 	
 

@@ -13,8 +13,7 @@ GWENDOLEN
 
 +! at_speed_limit [achieve] : {True} <-
 	accelerate,
-	*at_speed_limit,
-	.send(car2, :achieve, at_speed_limit);
+	*at_speed_limit;
 
 +at_speed_limit: {True} <-
 	maintain_speed,

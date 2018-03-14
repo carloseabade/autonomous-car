@@ -1,24 +1,28 @@
 package autonomousCarGwendolen;
 
-/**
- * A class for a car on a simple motorway simulation that may be controlled by an agent.
- * @author lad
- *
- */
+import ail.util.AILSocketServer;
+
 public class Car {
-	private double x, y, xrel, yrel;
-	private double xdot = 0, ydot = 0;
-	private double xaccel = 0;
-	private double yaccel = 0;
+	private int x, y, xrel, yrel;
+	private int xdot = 0, ydot = 2;
+	private int xaccel = 0;
+	
+	private int width = 2;
+	private int length = 5;
 	
 	private int INITIAL_X, INITIAL_Y, B_WIDTH, B_HEIGHT;
 	
 	private boolean controlled;
 	private boolean include_total_distance;
 	private int started = 0;
-	@SuppressWarnings("unused")
-	private int carnum = 1;
 
+	/**
+	 * Socket that connects to the agent.
+	 */
+	protected AILSocketServer socketserver;
+	
+	public Car() {}
+	
 	/**
 	 * Constructor.
 	 * @param xi
@@ -28,25 +32,29 @@ public class Car {
 	 * @param externalcontrol
 	 * @param carnum
 	 */
-	public Car (int xi, int yi, int bw, int bh, boolean externalcontrol, int carnum) {
-		x = xi;
+	public Car (int xi, int yi, int bw, int bh, boolean externalcontrol) {
+		x = xi-((width*5)/2);
 		y = yi;
-		xrel = xi;
+		xrel = xi-((width*5)/2);
 		yrel = yi;
-		INITIAL_X = xi;
+		INITIAL_X = xi-((width*5)/2);
 		INITIAL_Y = yi;
 		B_WIDTH = bw;
 		B_HEIGHT = bh;
 		controlled = externalcontrol;
-		this.carnum = carnum;
-
+		
+		if (controlled) {
+			System.err.println("Motorway Sim waiting Socket Connection");
+			socketserver = new AILSocketServer();
+			System.err.println("Got Socket Connection");
+		}
 	}
 	
 	/**
 	 * Getter for x coordinate of car.
 	 * @return
 	 */
-	public double getX() {
+	public int getX() {
 		return xrel;
 	}
 	
@@ -54,7 +62,7 @@ public class Car {
 	 * Getter for y coordinate of car.
 	 * @return
 	 */
-	public double getY() {
+	public int getY() {
 		return yrel;
 	}
 	
@@ -86,15 +94,23 @@ public class Car {
 	 * Getter for speed in the y direction.
 	 * @return
 	 */
-	public double getYDot() {
+	public int getYDot() {
 		return ydot;
+	}
+	
+	public int getWidth() {
+		return width;
+	}
+	
+	public int getLength() {
+		return length;
 	}
 	
 	/**
 	 * Setter for the y speed.
 	 * @param speed
 	 */
-	public void setYDot(double speed) {
+	public void setYDot(int speed) {
 		ydot = speed;
 	}
 	
@@ -118,27 +134,18 @@ public class Car {
 	 * Setter for the acceleration in the x direction.
 	 * @param a
 	 */
-	public void setXAccel(double a) {
+	public void setXAccel(int a) {
 		xaccel = a;
 	}
 	
-	/**
-	 * Setter for the acceleration in the y direction.
-	 * @param a
-	 */
-	public void setYAccel(double a) {
-		yaccel = a;
-	}
 
 	/**
 	 * Calculate cars new position.
 	 */
 	public void calculatePos() {
-		xdot += xaccel;
-		ydot += yaccel;
+xdot = xaccel;
 		
-		
-		if (xdot < 0) {
+		if (xdot == 0) {
 			xdot = 0;
 		}
 		
@@ -150,7 +157,6 @@ public class Car {
 		y += ydot;
 		xrel += xdot;
 		yrel += ydot;
-
 		
 		if (yrel > B_HEIGHT) {
 			yrel = INITIAL_Y;
@@ -160,6 +166,76 @@ public class Car {
 			xrel = INITIAL_X;
 		}
 
+	}
+	
+	/**
+	 * Read in new accelerations from the socket and write current position and speed to the socket.
+	 */
+	public void updateParameters() {
+		if (controlled) {
+			if (socketserver.allok()) {
+				try {
+					if (socketserver.pendingInput()) {
+						// System.err.println("reading values");
+						readValues();
+					}
+				} catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+				writeValues();
+			} else {
+				System.err.println("something wrong with socket server");
+			}
+			
+		}
+
+	}
+	
+	/**
+	 * Read in values from socket.
+	 */
+	private void readValues() {
+		if (controlled) {
+			try {
+				xaccel = socketserver.readInt();
+				ydot = socketserver.readInt();
+			} catch (Exception e) {
+				System.err.println("READ ERROR: Closing socket");
+				close();
+			}
+		}
+	}
+	
+	/**
+	 * Write values to socket.
+	 */
+	public void writeValues() {
+		if (controlled) {
+			try {
+				if (include_total_distance) {
+					socketserver.writeInt(x);
+					socketserver.writeInt(y);
+				}
+				socketserver.writeInt(xrel);
+				socketserver.writeInt(yrel);
+				socketserver.writeInt(xdot);
+				socketserver.writeInt(ydot);
+				socketserver.writeInt(started);
+				socketserver.writeInt(INITIAL_X);
+			}  catch (Exception e) {
+				System.err.println("READ ERROR: Closing socket");
+				close();
+			}
+		}
+	}
+	
+	/**
+	 * Close up the socket server.
+	 */
+	public void close() {
+		if (controlled) {
+			socketserver.close();
+		}
 	}
 		
 	/**
