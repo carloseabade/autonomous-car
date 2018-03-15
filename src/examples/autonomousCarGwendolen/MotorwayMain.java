@@ -54,7 +54,15 @@ public class MotorwayMain extends JFrame implements ActionListener {
         go.setActionCommand("go");
         go.addActionListener(this);
         go.setToolTipText("Click to Start");
-		
+
+        c.gridy = 2;
+		JButton stop = new JButton("Stop");
+		add(stop, c);
+        stop.setActionCommand("stop");
+        stop.addActionListener(this);
+        stop.setToolTipText("Click to Stop");
+
+        
 		setResizable(false);
 		pack();
 		
@@ -101,6 +109,9 @@ public class MotorwayMain extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("go")) {
 			motorway.start();
+		}
+		else if (e.getActionCommand().equals("stop")) {
+			motorway.stop();
 		}
 	}
 	
