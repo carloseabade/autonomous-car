@@ -16,4 +16,8 @@ GWENDOLEN
 	*obs;
 
 +obs: {True} <-
-	stop;
+	left,
+	*stay_in_lane;
+
++stay_in_lane : {True} <-
+	stay_in_lane;

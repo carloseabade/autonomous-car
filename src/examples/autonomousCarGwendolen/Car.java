@@ -217,7 +217,7 @@ public class Car {
 					socketserver.writeInt(y);
 				}
 				socketserver.writeInt(xrel);
-				socketserver.writeInt(yrel);
+				socketserver.writeInt(yrel+length*5);
 				socketserver.writeInt(xdot);
 				socketserver.writeInt(ydot);
 				socketserver.writeInt(started);

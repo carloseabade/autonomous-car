@@ -90,6 +90,10 @@ public class Motorway extends JPanel implements Runnable {
 		g.drawArc(d1+car1.getWidth()*5/2-8*5,d2+car1.getLength()*5/2-8*5, 16*5,16*5, 180, 180);
 		
 		//Desenha o carro
+		g.setColor(new Color(0,0,255));
+		g.fillRect(30, 100, 10, 10);
+		
+		//Desenha o carro
 		g.setColor(new Color(0,0,0));
 		g.drawRect(d1, d2, car1.getWidth()*5, car1.getLength()*5);
 		

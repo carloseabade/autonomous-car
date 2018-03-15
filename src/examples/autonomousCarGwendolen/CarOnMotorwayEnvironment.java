@@ -35,6 +35,9 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	private int x;
 	private int y;
 	
+	private int obs_x = 30;
+	private int obs_y = 100;
+	
 	public CarOnMotorwayEnvironment() {
 		super();
 		MCAPLScheduler s = new NActionScheduler(100);
@@ -74,7 +77,7 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 
 				x = socket.readInt();
 				y = socket.readInt();
-				System.out.println("1 Valor de :"+y);socket.readInt();
+				socket.readInt();
 				socket.readInt();
 				started = socket.readInt();
 				lane = socket.readInt();
@@ -83,7 +86,7 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 					while (socket.pendingInput()) {
 						x = socket.readInt();
 						y = socket.readInt();
-						System.out.println("2 Valor de :"+y);socket.readInt();
+						socket.readInt();
 						socket.readInt();
 						started = socket.readInt();
 						lane = socket.readInt();		
@@ -95,33 +98,20 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 								
 				if (started > 0) {
 					addPercept(new Literal("started"));
-//					
-//					Literal lane1 = new Literal("lane1");
-//					lane1.addTerm(new NumberTermImpl(lane));
-//					addPercept("lane1", lane1);
-//
-//					Literal lane2 = new Literal("lane2");
-//					lane2.addTerm(new NumberTermImpl(lane*3));
-//					addPercept("lane2", lane2);
 				}
-				
-				//System.out.println("Certo:" + y);
-				
-				if(y < 100) {
-					removePercept("car", new Literal("obs"));
+
+				if((y + 15) == obs_y) {
+					System.out.println(obs_y);
+					System.out.println(y+15);
+					addPercept(new Literal("obs"));
 				} else {
-					addPercept("car", new Literal("obs"));
+					removePercept(new Literal("obs"));
+
 				}
 				
-//				Literal xpos = new Literal("xpos");
-//				xpos.addTerm(new NumberTermImpl(x));
-//				addPercept("xpos", xpos);
-//				
-//				Literal ypos = new Literal("ypos");
-//				ypos.addTerm(new NumberTermImpl(y));
-//				addPercept("ypos", ypos);
-//				
-//				//System.out.println(ypos);
+				if(x == 50) {
+					addPercept(new Literal("stay_in_lane"));
+				}
 
 			}
 		} catch (Exception e) {
@@ -142,12 +132,11 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 		} else if (act.getFunctor().equals("left")) {
 			socket.writeInt(1);
 			socket.writeInt(2);
-			removePercept("car", new Literal("left"));
 		} else if (act.getFunctor().equals("right")) {
 			socket.writeInt(-1);
 			socket.writeInt(2);
 		}else if (act.getFunctor().equals("stay_in_lane")) {
-			
+			removePercept(new Literal("stay_in_lane"));
 			socket.writeInt(0);
 			socket.writeInt(2);
 		}else if (act.getFunctor().equals("stop")) {
