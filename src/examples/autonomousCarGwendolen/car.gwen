@@ -8,14 +8,12 @@ GWENDOLEN
 		
 :Plans: 
 
-+started : {B started} <-
-	+!to_the_left[perform];
-
-+!to_the_left [perform] : {True} <-
-	left,
-	+!to_the_right [perform];
-
-+!to_the_right [perform] : {True} <-
-	right,
-	+!to_the_left [perform];
++started: {B started} <-
+	+!stay_in_lane [perform];
 	
++! stay_in_lane [perform]: {True} <-
+	stay_in_lane, 
+	*obs;
+
++obs: {True} <-
+	stop;
