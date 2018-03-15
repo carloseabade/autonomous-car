@@ -80,8 +80,12 @@ public class Motorway extends JPanel implements Runnable {
 		int d1 = car1.getX();
 		int d2 = car1.getY();
 		
+		//Desenha o carro
 		g.drawRect(d1, d2, car1.getWidth()*5, car1.getLength()*5);
+		//Desenha o sensor de 8m
+		//Desenha a linha vertical do meio
 		g.drawLine(lane.getWidth()*5, 0, lane.getWidth()*5, B_HEIGHT);
+		//Desenha a linha vertical da direita
 		g.drawLine(lane.getWidth()*5*2, 0, lane.getWidth()*5*2, B_HEIGHT);
 		
 		//g.fillRect(rubble1.getX(), rubble1.getY(), 10, 10);
