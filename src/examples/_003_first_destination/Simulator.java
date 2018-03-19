@@ -3,11 +3,11 @@ package _003_first_destination;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.HeadlessException;
-
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
-
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,11 +18,14 @@ public class Simulator extends JComponent{
 	
 	private JFrame window = new JFrame();
 	
-	private int width = 800;
-	private int height = 800;
+	Toolkit tk = Toolkit.getDefaultToolkit();
+    Dimension d = tk.getScreenSize();
+	
+	private int width = d.width;
+	private int height = d.height;
 	
 	private int gridSize = 7;
-	private int gridAmplifier = 55;
+	private int gridAmplifier = 60;
 
 	private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.
 	private Color carColor = Color.BLUE;
