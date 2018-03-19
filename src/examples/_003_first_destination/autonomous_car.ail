@@ -1,0 +1,7 @@
+mas.file = /src/examples/_003_first_destination/autonomous_car.gwen
+mas.builder = gwendolen.GwendolenMASBuilder
+
+env = _003_first_destination.AutonomousCarEnv
+
+log.warning = ail.mas.DefaultEnvironment
+//log.info = ail.mas.DefaultEnvironment

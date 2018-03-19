@@ -1,4 +1,4 @@
-/// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Copyright (C) 2016 Louise A. Dennis and Michael Fisher 
 // 
 // This file is part of Gwendolen
@@ -24,7 +24,7 @@
 
 GWENDOLEN
 
-:name: car1
+:name: car2
 			
 :Initial Beliefs:
 													
@@ -32,13 +32,11 @@ GWENDOLEN
 		
 :Plans: 
 
-+started: {True} <-
-	+!at_speed_limit[achieve];
++.received(:achieve, G): {True} <- +!G [achieve];
 
 +! at_speed_limit [achieve] : {True} <-
 	accelerate,
-	*at_speed_limit,
-	.send(car2, :achieve, at_speed_limit);
+	*at_speed_limit;
 
 +at_speed_limit: {True} <-
 	maintain_speed,

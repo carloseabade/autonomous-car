@@ -14,12 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-/**
- * This is intended as a very simple motorway simulator to demonstrate aspects of the 
- * EASS Language.
- * @author lad
- *
- */
 public class MotorwayMain extends JFrame implements ActionListener {
 	
 	static final long serialVersionUID = 0;

@@ -8,12 +8,13 @@ GWENDOLEN
 		
 :Plans: 
 
-+started : {B started} <-
-	+!stay_in_lane[achieve];
++started: {B started} <-
+	+!stay_in_lane [perform];
+	
++! stay_in_lane [perform]: {~B obs} <-
+	stay_in_lane, 
+	*going,
+	+! stay_in_lane [perform];
 
-+!stay_in_lane[achieve] : {True} <-
-	stay_in_lane;
-	
-+obs : {True} <-
-	stop;
-	
++! stay_in_lane [perform]: {B obs} <-
+	left;

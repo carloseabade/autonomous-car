@@ -1,6 +1,7 @@
 package autonomousCarGwendolen;
 
 import java.io.IOException;
+import java.net.SocketException;
 
 import ail.mas.DefaultEnvironment;
 import ail.mas.scheduling.NActionScheduler;
@@ -35,6 +36,9 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	private int y = 0;
 	private int obs_x = 30;
 	private int obs_y = 150;
+	
+	private int obs_x = 30;
+	private int obs_y = 100;
 	
 	public CarOnMotorwayEnvironment() {
 		super();
@@ -95,7 +99,14 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 				
 				if (started > 0) {
 					addPercept(new Literal("started"));
+				}				
+				System.out.println(y+15);
+				System.out.println(obs_y);
+
+				if(y+1 == obs_y) {
+					addPercept(new Literal("obs"));
 				}
+
 			}
 		} catch (Exception e) {
 			AJPFLogger.warning(logname, e.getMessage());
@@ -121,14 +132,7 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 		}else if (act.getFunctor().equals("stay_in_lane")) {
 			socket.writeInt(0);
 			socket.writeInt(2);
-			
-			System.out.println("Y:"+y);
-			System.out.println("OBS_Y:"+obs_y);
-			
-			if(y+10 > obs_y) {
-				Predicate obs = new Predicate("obs");
-				addPercept(agName, obs);
-			}
+			addPercept(new Literal("going"));
 		}else if (act.getFunctor().equals("stop")) {
 			Predicate stay_in_lane = new Predicate("stay_in_lane");
 			addPercept(agName, stay_in_lane);
@@ -136,7 +140,7 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 			socket.writeInt(0);
 			socket.writeInt(0);
 		}
-		
+
 		u.compose(super.executeAction(agName, act));
 		
 		return u;
