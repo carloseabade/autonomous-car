@@ -1,0 +1,41 @@
+1: [] ~B(vehicle, name(vehicle))
+
+FAR_1: <> D(vehicle, location) -> <> P (at(0,0))
+
+FAR_6:  [] ( ~B(vehicle, ride_info) U D(vehicle, get_ride) )
+
+FAR_7: <> ( B(vehicle, obstacle(center, 1, 2)) & P(pick_up(1, 2)) ) -> <> D(vehicle, refuse_ride(pick_up))
+
+FAR_8_1_8_2: ( <> B(vehicle, pick_up(1,1)) -> <> G(vehicle, complete_journey(1,1)) ) -> <> ( B(vehicle, at(1,1)) & D(vehicle, park(pick_up)) )
+
+FAR_8_1_8_3: <>(B(vehicle,pick_up(1,2)) & G(vehicle,complete_journey(1,2)) & P(obstacle(center, 1, 2))) -> <> D (vehicle, refuse_ride(pick_up))
+
+DT_DIRECTIONS_NORTH: <> G(vehicle, drive_to(0, 2)) -> <> P(at(0,2))
+DT_DIRECTIONS_EAST: <> G(vehicle, drive_to(2, 2)) -> <> P(at(2,2))
+DT_DIRECTIONS_SOUTH: <> G(vehicle, drive_to(2, 0)) -> <> P(at(2,0))
+DT_DIRECTIONS_WEST:  <> G(vehicle, drive_to(1, 0)) -> <> P(at(1,0))
+
+DT_DIRECTIONS_NORTH_EAST: <> G(vehicle, drive_to(4, 3)) R <> P(at(4,3))
+DT_DIRECTIONS_SOUTH_WEST: <> G(vehicle, drive_to(2, 1)) R <> P(at(2,1))
+DT_DIRECTIONS_NORTH_WEST: <> G(vehicle, drive_to(0, 3)) R <> P(at(0,3))
+DT_DIRECTIONS_SOUTH_EAST: <> G(vehicle, drive_to(1, 1)) R <> P(at(1,1))
+
+AR_5: [] (  ( ( B(vehicle, east) & B(vehicle, north)  &  B(vehicle, heading(north)) & B(vehicle, obstacle(north,_,_)) ) -> ( <> B(vehicle, adapt(east)) R <> D(vehicle, drive(_,_,north,_,_) ) ) ) & ~B(vehicle, crashed(_,_)) )
+
+AR_6: [] (  ( ( B(vehicle, south) & ~B(vehicle, east) & ~B(vehicle, west)  &  B(vehicle, heading(south)) & B(vehicle, obstacle(south,_,_)) & B(vehicle, obstacle(east,_,_)) & ~B(vehicle, obstacle(west,_,_)) ) -> ( <> B(vehicle, adapt(west)) R <> D(vehicle, drive(_,_,south,_,_) ) ) ) & ~B(vehicle, crashed(_,_)) )
+
+AR_7: <> ( B(vehicle, west) & ~B(vehicle, can_adapt(north,_,_)) & ~B(vehicle, can_adapt(south,_,_)) & ~B(vehicle, can_adapt(west,_,_)) & B(vehicle, can_adapt(east,_,_)) ) -> ( <>G(vehicle, drive_direction(east) )  )
+
+AR_8: <> ( B(vehicle, east) & B(vehicle, adapt(north)) & ~B(vehicle, can_adapt(north,_,_)) ) -> ( <> D(vehicle, drive(_,_,south,_,_) ) R <> B(vehicle, adapt(south)) )
+
+
+COC: [](  (<> ( B(vehicle, unavoidable_collision(_,_)) & B(vehicle, obstacle_damage(_,_,_,low) ) ) -> <> G(vehicle, colide_obstacle(_, low)) ) &  
+(<> ( B(vehicle, unavoidable_collision(_,_)) & ~B(vehicle, obstacle_damage(_,_,_,low) ) & B(vehicle, obstacle_damage(_,_,_,moderate) ) ) -> <> G(vehicle, colide_obstacle(_, moderate))))
+
+COC1:[](  (<>(B(vehicle, unavoidable_collision(_,_)) & B(vehicle, obstacle_damage(_,_,_,low) ) ) -> (<> G(vehicle, colide_obstacle(_, low)) ) )  || (<> ( B(vehicle, unavoidable_collision(_,_)) & ~B(vehicle, obstacle_damage(_,_,_,low) ) & B(vehicle, obstacle_damage(_,_,_,moderate) ) ) -> (<> G(vehicle, colide_obstacle(_, moderate) ) ) ) )
+
+
+IFV: <> D(vehicle, honk)
+
+
+TRIVIAL: <> B(vehicle, done_all_rides)

@@ -99,18 +99,12 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 				if (started > 0) {
 					addPercept(new Literal("started"));
 				}
-
-				if((y + 15) == obs_y) {
-					System.out.println(obs_y);
-					System.out.println(y+15);
-					addPercept(new Literal("obs"));
-				} else {
-					removePercept(new Literal("obs"));
-
-				}
 				
-				if(x == 50) {
-					addPercept(new Literal("stay_in_lane"));
+				System.out.println(y+15);
+				System.out.println(obs_y);
+
+				if(y+1 == obs_y) {
+					addPercept(new Literal("obs"));
 				}
 
 			}
@@ -136,9 +130,9 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 			socket.writeInt(-1);
 			socket.writeInt(2);
 		}else if (act.getFunctor().equals("stay_in_lane")) {
-			removePercept(new Literal("stay_in_lane"));
 			socket.writeInt(0);
 			socket.writeInt(2);
+			addPercept(new Literal("going"));
 		}else if (act.getFunctor().equals("stop")) {
 			socket.writeInt(0);
 			socket.writeInt(0);

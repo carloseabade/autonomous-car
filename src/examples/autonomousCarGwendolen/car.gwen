@@ -11,13 +11,10 @@ GWENDOLEN
 +started: {B started} <-
 	+!stay_in_lane [perform];
 	
-+! stay_in_lane [perform]: {True} <-
++! stay_in_lane [perform]: {~B obs} <-
 	stay_in_lane, 
-	*obs;
+	*going,
+	+! stay_in_lane [perform];
 
-+obs: {True} <-
-	left,
-	*stay_in_lane;
-
-+stay_in_lane : {True} <-
-	stay_in_lane;
++! stay_in_lane [perform]: {B obs} <-
+	left;
