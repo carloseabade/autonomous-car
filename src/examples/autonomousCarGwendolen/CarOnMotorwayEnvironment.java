@@ -34,8 +34,6 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	private int lane;
 	private int x = 0;
 	private int y = 0;
-	private int obs_x = 30;
-	private int obs_y = 150;
 	
 	private int obs_x = 30;
 	private int obs_y = 100;
