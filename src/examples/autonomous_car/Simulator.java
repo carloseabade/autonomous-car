@@ -2,12 +2,18 @@ package autonomous_car;
 
 import java.awt.Graphics;
 import java.awt.HeadlessException;
+
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.net.*;
+import java.util.Observer;
 
 public class Simulator extends JComponent{
 
@@ -38,8 +44,21 @@ public class Simulator extends JComponent{
 	
 	protected void drawMotorway(Graphics g) {
 		
+		// Draw middle line
 		g.drawLine(0, height/2, width, height/2);
-		
+		// Draw left line
+		g.drawLine(0, height/2-60, width, height/2-60);
+		// Draw right line
+		g.drawLine(0, height/2+60, width, height/2+60);
+
+		// Draw car
+		BufferedImage img = null;
+        try {
+			img = ImageIO.read(new File("./res/img/autonomous-car.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    g.drawImage(img, 0, height/2, 132, 60+height/2, 0, 0, 1461, 666, null);
 	}
 	
 	@Override
