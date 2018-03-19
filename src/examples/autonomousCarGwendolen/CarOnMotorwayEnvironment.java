@@ -32,8 +32,10 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	
 	private int started;
 	private int lane;
-	private int x;
-	private int y;
+	private int x = 0;
+	private int y = 0;
+	private int obs_x = 30;
+	private int obs_y = 150;
 	
 	private int obs_x = 30;
 	private int obs_y = 100;
@@ -93,13 +95,11 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 					}
 				} catch (Exception e) {
 					AJPFLogger.warning(logname, e.getMessage());
-				} 
-				
-								
-				if (started > 0) {
-					addPercept(new Literal("started"));
 				}
 				
+				if (started > 0) {
+					addPercept(new Literal("started"));
+				}				
 				System.out.println(y+15);
 				System.out.println(obs_y);
 
@@ -134,6 +134,9 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 			socket.writeInt(2);
 			addPercept(new Literal("going"));
 		}else if (act.getFunctor().equals("stop")) {
+			Predicate stay_in_lane = new Predicate("stay_in_lane");
+			addPercept(agName, stay_in_lane);
+
 			socket.writeInt(0);
 			socket.writeInt(0);
 		}
