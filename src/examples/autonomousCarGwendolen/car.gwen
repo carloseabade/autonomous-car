@@ -9,13 +9,11 @@ GWENDOLEN
 :Plans: 
 
 +started : {B started} <-
-	+!to_the_left[perform];
+	+!stay_in_lane[achieve];
 
-+!to_the_left [perform] : {True} <-
-	left,
-	+!to_the_right [perform];
-
-+!to_the_right [perform] : {True} <-
-	right,
-	+!to_the_left [perform];
++!stay_in_lane[achieve] : {True} <-
+	stay_in_lane;
+	
++obs : {True} <-
+	stop;
 	

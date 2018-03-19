@@ -6,6 +6,7 @@ import ail.mas.DefaultEnvironment;
 import ail.mas.scheduling.NActionScheduler;
 import ail.syntax.Literal;
 import ail.syntax.NumberTermImpl;
+import ail.syntax.Predicate;
 import ail.syntax.Unifier;
 import ail.syntax.Action;
 import ail.util.AILSocketClient;
@@ -30,8 +31,10 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 	
 	private int started;
 	private int lane;
-	private int x;
-	private int y;
+	private int x = 0;
+	private int y = 0;
+	private int obs_x = 30;
+	private int obs_y = 150;
 	
 	public CarOnMotorwayEnvironment() {
 		super();
@@ -88,31 +91,11 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 					}
 				} catch (Exception e) {
 					AJPFLogger.warning(logname, e.getMessage());
-				} 
-				
-								
-				if (started > 0) {
-					addPercept(new Literal("started"));
-					
-					Literal lane1 = new Literal("lane1");
-					lane1.addTerm(new NumberTermImpl(lane));
-					addPercept("lane1", lane1);
-
-					Literal lane2 = new Literal("lane2");
-					lane2.addTerm(new NumberTermImpl(lane*3));
-					addPercept("lane2", lane2);
 				}
 				
-				Literal xpos = new Literal("xpos");
-				xpos.addTerm(new NumberTermImpl(x));
-				addPercept("xpos", xpos);
-				
-				Literal ypos = new Literal("ypos");
-				ypos.addTerm(new NumberTermImpl(y));
-				addPercept("ypos", ypos);
-				
-				System.out.println(ypos);
-
+				if (started > 0) {
+					addPercept(new Literal("started"));
+				}
 			}
 		} catch (Exception e) {
 			AJPFLogger.warning(logname, e.getMessage());
@@ -138,7 +121,18 @@ public class CarOnMotorwayEnvironment extends DefaultEnvironment implements MCAP
 		}else if (act.getFunctor().equals("stay_in_lane")) {
 			socket.writeInt(0);
 			socket.writeInt(2);
+			
+			System.out.println("Y:"+y);
+			System.out.println("OBS_Y:"+obs_y);
+			
+			if(y+10 > obs_y) {
+				Predicate obs = new Predicate("obs");
+				addPercept(agName, obs);
+			}
 		}else if (act.getFunctor().equals("stop")) {
+			Predicate stay_in_lane = new Predicate("stay_in_lane");
+			addPercept(agName, stay_in_lane);
+
 			socket.writeInt(0);
 			socket.writeInt(0);
 		}
