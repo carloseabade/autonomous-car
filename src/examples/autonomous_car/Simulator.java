@@ -1,15 +1,17 @@
 package autonomous_car;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.HeadlessException;
 import java.awt.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -18,77 +20,83 @@ import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 
-public class Simulator extends JComponent{
+public class Simulator extends JFrame{
 
 	private static final long serialVersionUID = 1L;
 	
-	private JFrame window = new JFrame();
+	private JPanel window;
 	
-	Toolkit tk = Toolkit.getDefaultToolkit();
-    Dimension d = tk.getScreenSize();
-	
-	private int width = d.width;
-	private int height = d.height;
+	private int width;
+	private int height;
 
 	private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.
 	private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();
 	
+	private int velocity = 50;
+	
 	private static DatagramSocket server;
 	
-	private Simulator() throws HeadlessException {
-		this.window.setTitle("Autonomous Car Simulator");
-		this.window.setSize(width, height);
-		this.window.setLocationRelativeTo(null);
-		this.window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-		this.window.add(this);
-		this.window.setVisible(true);
-	}
+	private int fps = 1000 / 48;
+	private int proportion = 1;
 	
+	private boolean animate = true;
 	
-	protected void drawMotorway(Graphics g) {
+	private Simulator() {
 		
-		// Draw middle line
-		g.drawLine(0, height/2, width, height/2);
-		// Draw left line
-		g.drawLine(0, height/2-60, width, height/2-60);
-		// Draw right line
-		g.drawLine(0, height/2+60, width, height/2+60);
+		window = new JPanel() {
+			@Override
+			public void paintComponent(Graphics g) {
+				g.setColor(Color.decode("#fdfdfd"));
+				g.fillRect(0, 0, width, height);
 
-		// Draw car
-		BufferedImage bi_car = null;
-        try {
-        	bi_car = ImageIO.read(new File("./res/img/autonomous-car.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    g.drawImage(bi_car, car.getX()*20, height/2-60+car.getY()*60, 132+car.getX()*20, 60+height/2-60+car.getY()*60, 0, 0, bi_car.getWidth(), bi_car.getHeight(), null);
-	    
-	    // Draw obstacles
-	    BufferedImage bi_stone = null;
-        try {
-        	bi_stone = ImageIO.read(new File("./res/img/stone.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-        for(Coordinate c : obstacles) {
-//        	int a = (c.getX())+130;
-//        	int b = (height/2-60+c.getY())+130;
-//        	int d = (42+c.getX())+130;
-//        	int e = (25+height/2-60+c.getY())+130;
-        	int a = (c.getX())*10;
-        	int b = (c.getY())*10;
-        	int d = (42+c.getX())*10;
-        	int e = (25+c.getY())*10;
-        	g.drawImage(bi_stone, a, b, d, e, 0, 0, bi_stone.getWidth(), bi_stone.getHeight(), null);
-        }
-	}
-	
-	@Override
-	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		drawMotorway(g);
+				g.setColor(Color.decode("#dcdcdc"));
+				
+				// Draw middle line
+				for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
+					g.fillRect(i-car.getX()*velocity, height/2-proportion, 70*proportion, 2*proportion);
+				}
+				
+				// Draw left line
+				g.fillRect(0, height/2-105*proportion, width, 2*proportion);
+				g.fillRect(0, height/2-120*proportion, width, 2*proportion);
+				
+				// Draw right line
+				g.fillRect(0, height/2+105*proportion, width, 2*proportion);
+				g.fillRect(0, height/2+120*proportion, width, 2*proportion);
+
+				// Draw car
+				BufferedImage bi_car = null;
+		        try {
+		        	bi_car = ImageIO.read(new File("./res/img/tesla.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			    g.drawImage(bi_car, 50*proportion, height/2-87*proportion + 110*car.getY(), 155*proportion, 70*proportion, null);
+
+//			    Draw obstacles
+			    BufferedImage bi_stone = null;
+		        try {
+		        	bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		        for(Coordinate c : obstacles) {
+		        	g.drawImage(bi_stone, (c.getX()*velocity)-(car.getX()*velocity), height/2-87*proportion + 110*c.getY(), 155*proportion, 70*proportion, null);
+		        }
+			
+			}
+		};
 		
+		getContentPane().add(window);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		setSize(width, height);
+		setVisible(true);
+		setTitle("Autonomous Car Simulator");
+		setLocationRelativeTo(null);
+		setExtendedState(getExtendedState() | JFrame.MAXIMIZED_BOTH);
+		width = getWidth();
+		height = getHeight();
+		window.repaint();
 	}
 
 	
@@ -102,12 +110,10 @@ public class Simulator extends JComponent{
 	 * onde a primeira posição identifica o tipo da mensagem, messageArray[0]. 
 	 * Para cada tipo de mensagem, uma atualização diferente é realizada. A identificação de cada mensagem é feito por meio de um switch().
 	 */
-private void readReceivedMessage(String message) {
+	private void readReceivedMessage(String message) {
 		
 		String[] messageArray = message.split(";");
 		String switchMessage = messageArray[0];
-	
-		String d;
 		
 		switch(switchMessage) {
 			case	"carLocation":
@@ -121,32 +127,40 @@ private void readReceivedMessage(String message) {
 				System.out.println("Erro");
 				System.out.println(messageArray[0]);
 		}
-		
-		repaint();
 	}
 	
-	
-	public static void main(String args[]){
-		
-		Simulator sim = new Simulator();
+	public void startAnimation() {
+		long nextUpdate = 0;
 		
 		try {
 
 			server = new DatagramSocket(9999);
 			byte[] receive = new byte[1024];
+			DatagramPacket receivePacket = new DatagramPacket(receive, receive.length); // Pacote Recebido
 			
-			while(true)
+			while(animate)
 			{
-				DatagramPacket receivePacket = new DatagramPacket(receive, receive.length); // Pacote Recebido
 				server.receive(receivePacket);
 				
-				String sentence = new String( receivePacket.getData() );
-				sim.readReceivedMessage(sentence);
+				String sentence = new String(receivePacket.getData());
+				this.readReceivedMessage(sentence);
+				
+				if(System.currentTimeMillis() >= fps) {
+					window.repaint();
+					
+					nextUpdate = System.currentTimeMillis() + fps;
+				}
 			}
 		}
 		catch (Exception e) {
 			System.out.println(e);
 		}
+	}
+	
+	
+	public static void main(String args[]){
+		Simulator sim = new Simulator();
+		sim.startAnimation();
 	 }
 		
 }

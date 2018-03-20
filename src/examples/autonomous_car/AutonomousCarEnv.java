@@ -40,14 +40,24 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private int car_x = 0;
 	private int car_y = 0;
 	
+	private int velocity = 1;
+	
 	// 1st obstacle
 	private int obs1_x = 10;
 	private int obs1_y = 0;
 	
-	// 2nd obstacle
-	private int obs2_x = 35;
+	//2nd obstacle
+	private int obs2_x = 20;
 	private int obs2_y = 1;
 	
+	//3rd obstacle
+	private int obs3_x = 28;
+	private int obs3_y = 1;
+
+	//4th obstacle
+	private int obs4_x = 40;
+	private int obs4_y = 0;
+
 	private boolean simulate = true; // Determines if the environment should send message to the simulator
 	private int waitTimeDefault = 750; // Wait time between messages
 	private int waitTimeLocation = 300; // Wait time to send first message
@@ -64,7 +74,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_x is not altered
-			car_x++; // increment one in the X axis
+			car_x+=velocity; // increment one in the X axis
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car_x));
@@ -75,28 +85,38 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
-						
+			
 			if(car_x == obs1_x-5 && car_y == obs1_y) {
+				Predicate go_right = new Predicate("go_right");
+				addPercept(agName, go_right);
+			}
+
+			if(car_x == obs2_x-5 && car_y == obs2_y) {
+				Predicate go_left = new Predicate("go_left");
+				addPercept(agName, go_left);
+			}
+			
+			if(car_x == obs3_x-5 && car_y == obs3_y) {
 				Predicate go_left = new Predicate("go_left");
 				addPercept(agName, go_left);
 			}
 
-			if(car_x == obs2_x-5 && car_y == obs2_y) {
-				Predicate go_right = new Predicate("go_right");
-				addPercept(agName, go_right);
+			if(car_x == obs4_x-5 && car_y == obs4_y) {
+				Predicate go_left = new Predicate("go_right");
+				addPercept(agName, go_left);
 			}
-			
+
 			Predicate going_forward = new Predicate("going_forward");
 			addPercept(agName, going_forward);
 		}
-		else if(act.getFunctor().equals("left")) {
+		else if(act.getFunctor().equals("right")) {
 			
 			Predicate old_position = new Predicate("at");
 			old_position.addTerm(new NumberTermImpl(car_x));
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_y is not altered
-			car_y++; // increment one in the Y axis
+			car_y+=velocity; // increment one in the Y axis
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car_x));
@@ -107,13 +127,13 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
 
-			Predicate go_left = new Predicate("go_left");
-			removePercept(agName, go_left);
+			Predicate go_right = new Predicate("go_right");
+			removePercept(agName, go_right);
 			
 			Predicate going_forward = new Predicate("going_forward");
 			addPercept(agName, going_forward);
 		}
-		else if(act.getFunctor().equals("right")) {
+		else if(act.getFunctor().equals("left")) {
 			
 			Predicate old_position = new Predicate("at");
 			old_position.addTerm(new NumberTermImpl(car_x));
@@ -131,8 +151,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
 
-			Predicate go_right = new Predicate("go_right");
-			removePercept(agName, go_right);
+			Predicate go_left = new Predicate("go_left");
+			removePercept(agName, go_left);
 			
 			Predicate going_forward = new Predicate("going_forward");
 			addPercept(agName, going_forward);
@@ -157,6 +177,10 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 					{"obsLocation", String.valueOf(obs1_x), String.valueOf(obs1_y)} ) );
 			Client.sendMessage( Client.convertArray2String( new String[] 
 					{"obsLocation", String.valueOf(obs2_x), String.valueOf(obs2_y)} ) );
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obs3_x), String.valueOf(obs3_y)} ) );
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obs4_x), String.valueOf(obs4_y)} ) );
 		}
 		
 		return u;
