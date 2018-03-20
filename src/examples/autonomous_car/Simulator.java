@@ -2,18 +2,21 @@ package autonomous_car;
 
 import java.awt.Graphics;
 import java.awt.HeadlessException;
+import java.awt.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
+
+
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
-import java.util.Observer;
+import java.util.ArrayList;
 
 public class Simulator extends JComponent{
 
@@ -28,6 +31,7 @@ public class Simulator extends JComponent{
 	private int height = d.height;
 
 	private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.
+	private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();
 	
 	private static DatagramSocket server;
 	
@@ -52,19 +56,36 @@ public class Simulator extends JComponent{
 		g.drawLine(0, height/2+60, width, height/2+60);
 
 		// Draw car
-		BufferedImage img = null;
+		BufferedImage bi_car = null;
         try {
-			img = ImageIO.read(new File("./res/img/autonomous-car.png"));
+        	bi_car = ImageIO.read(new File("./res/img/autonomous-car.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	    g.drawImage(img, 0, height/2, 132, 60+height/2, 0, 0, 1461, 666, null);
+	    g.drawImage(bi_car, car.getX()*20, height/2-60+car.getY()*60, 132+car.getX()*20, 60+height/2-60+car.getY()*60, 0, 0, bi_car.getWidth(), bi_car.getHeight(), null);
+	    
+	    // Draw obstacles
+	    BufferedImage bi_stone = null;
+        try {
+        	bi_stone = ImageIO.read(new File("./res/img/stone.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        for(Coordinate c : obstacles) {
+//        	int a = (c.getX())+130;
+//        	int b = (height/2-60+c.getY())+130;
+//        	int d = (42+c.getX())+130;
+//        	int e = (25+height/2-60+c.getY())+130;
+        	int a = (c.getX())*10;
+        	int b = (c.getY())*10;
+        	int d = (42+c.getX())*10;
+        	int e = (25+c.getY())*10;
+        	g.drawImage(bi_stone, a, b, d, e, 0, 0, bi_stone.getWidth(), bi_stone.getHeight(), null);
+        }
 	}
 	
 	@Override
 	protected void paintComponent(Graphics g) {
-		
-		
 		super.paintComponent(g);
 		drawMotorway(g);
 		
@@ -81,19 +102,27 @@ public class Simulator extends JComponent{
 	 * onde a primeira posição identifica o tipo da mensagem, messageArray[0]. 
 	 * Para cada tipo de mensagem, uma atualização diferente é realizada. A identificação de cada mensagem é feito por meio de um switch().
 	 */
-	private void readReceivedMessage(String message) {
+private void readReceivedMessage(String message) {
 		
 		String[] messageArray = message.split(";");
 		String switchMessage = messageArray[0];
-		
-		int x = 0,  y = 0;
-		String d;
 	
+		String d;
 		
-		if( !(switchMessage.equals("clear") || switchMessage.equals("removeObstacleDamage")) ) {
-			x = Integer.parseInt( messageArray[1] );
-			y = Integer.parseInt( messageArray[2] );
+		switch(switchMessage) {
+			case	"carLocation":
+				car.setX(Integer.parseInt(messageArray[1]));
+				car.setY(Integer.parseInt(messageArray[2]));
+				break;
+			case	"obsLocation":
+				obstacles.add(new Coordinate((Integer.parseInt(messageArray[1])), (Integer.parseInt(messageArray[2]))));
+				break;
+			default:
+				System.out.println("Erro");
+				System.out.println(messageArray[0]);
 		}
+		
+		repaint();
 	}
 	
 	

@@ -23,6 +23,9 @@
 
 package autonomous_car;
 
+import java.util.concurrent.TimeUnit;
+
+import _003_first_destination.Client;
 import ail.mas.DefaultEnvironment;
 import ail.syntax.Action;
 import ail.syntax.NumberTermImpl;
@@ -38,12 +41,16 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private int car_y = 0;
 	
 	// 1st obstacle
-	private int obs1_x = 0;
-	private int obs1_y = 30;
+	private int obs1_x = 10;
+	private int obs1_y = 0;
 	
 	// 2nd obstacle
-	private int obs2_x = 1;
-	private int obs2_y = 80;
+	private int obs2_x = 35;
+	private int obs2_y = 1;
+	
+	private boolean simulate = true; // Determines if the environment should send message to the simulator
+	private int waitTimeDefault = 750; // Wait time between messages
+	private int waitTimeLocation = 300; // Wait time to send first message
 	
 	// Identifies agents' actions
 	public Unifier executeAction(String agName, Action act) throws AILexception {
@@ -57,7 +64,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_x is not altered
-			car_y++; // increment one in the Y axis
+			car_x++; // increment one in the X axis
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car_x));
@@ -69,12 +76,12 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
 						
-			if(car_x == obs1_x && car_y == obs1_y-5) {
+			if(car_x == obs1_x-5 && car_y == obs1_y) {
 				Predicate go_left = new Predicate("go_left");
 				addPercept(agName, go_left);
 			}
 
-			if(car_x == obs2_x && car_y == obs2_y-5) {
+			if(car_x == obs2_x-5 && car_y == obs2_y) {
 				Predicate go_right = new Predicate("go_right");
 				addPercept(agName, go_right);
 			}
@@ -89,7 +96,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_y is not altered
-			car_x++; // increment one in the X axis
+			car_y++; // increment one in the Y axis
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car_x));
@@ -113,7 +120,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_y is not altered
-			car_x--; // increment one in the X axis
+			car_y--; // increment one in the Y axis
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car_x));
@@ -136,6 +143,21 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		}
 		
 		super.executeAction(agName, act);
+		
+		if(simulate) {
+		    
+		    try {
+			TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
+		} catch(Exception e) {
+			System.err.println(e);
+		}
+			Client.sendMessage( Client.convertArray2String( new String[] 
+				{"carLocation", String.valueOf(car_x), String.valueOf(car_y)} ) );
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obs1_x), String.valueOf(obs1_y)} ) );
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obs2_x), String.valueOf(obs2_y)} ) );
+		}
 		
 		return u;
 		

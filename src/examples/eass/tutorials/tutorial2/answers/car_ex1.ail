@@ -1,7 +1,0 @@
-env=eass.tutorials.tutorial2.answers.CarOnMotorwayEnvironment_ex1
-
-mas.file = /src/examples/eass/tutorials/tutorial2/car_exercises.eass
-mas.builder = eass.EASSMASBuilder
-
-log.warning = ajpf.MCAPLAgent
-log.format = brief
