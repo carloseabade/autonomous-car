@@ -1,19 +1,11 @@
 package autonomous_car;
 
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.HeadlessException;
-import java.awt.List;
-
 import javax.imageio.ImageIO;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -73,7 +65,16 @@ public class Simulator extends JFrame{
 				}
 			    g.drawImage(bi_car, 50*proportion, height/2-87*proportion + 110*car.getY(), 155*proportion, 70*proportion, null);
 
-//			    Draw obstacles
+			    // Draw sensor
+				BufferedImage bi_sensor = null;
+		        try {
+		        	bi_sensor = ImageIO.read(new File("./res/img/sensor.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			    g.drawImage(bi_sensor, 50*proportion+130, height/2-87*proportion + 110*car.getY(), 155*proportion, 70*proportion, null);
+			    
+			    // Draw obstacles
 			    BufferedImage bi_stone = null;
 		        try {
 		        	bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
