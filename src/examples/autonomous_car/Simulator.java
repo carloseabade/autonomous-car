@@ -56,7 +56,16 @@ public class Simulator extends JFrame{
 				g.fillRect(0, height/2+105*proportion, width, 2*proportion);
 				g.fillRect(0, height/2+120*proportion, width, 2*proportion);
 
-				// Draw car
+			    // Draw sensor
+				BufferedImage bi_sensor = null;
+		        try {
+		        	bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			    g.drawImage(bi_sensor, 50-123*proportion, height/2-87-122*proportion + 110*car.getY(), 400*proportion, 312*proportion, null);
+
+			    // Draw car
 				BufferedImage bi_car = null;
 		        try {
 		        	bi_car = ImageIO.read(new File("./res/img/tesla.png"));
@@ -64,15 +73,6 @@ public class Simulator extends JFrame{
 					e.printStackTrace();
 				}
 			    g.drawImage(bi_car, 50*proportion, height/2-87*proportion + 110*car.getY(), 155*proportion, 70*proportion, null);
-
-			    // Draw sensor
-				BufferedImage bi_sensor = null;
-		        try {
-		        	bi_sensor = ImageIO.read(new File("./res/img/sensor.png"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			    g.drawImage(bi_sensor, 50*proportion+130, height/2-87*proportion + 110*car.getY(), 155*proportion, 70*proportion, null);
 			    
 			    // Draw obstacles
 			    BufferedImage bi_stone = null;
@@ -84,7 +84,6 @@ public class Simulator extends JFrame{
 		        for(Coordinate c : obstacles) {
 		        	g.drawImage(bi_stone, (c.getX()*velocity)-(car.getX()*velocity), height/2-87*proportion + 110*c.getY(), 155*proportion, 70*proportion, null);
 		        }
-			
 			}
 		};
 		

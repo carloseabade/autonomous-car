@@ -184,7 +184,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_y is not altered
-			car_y+=velocity; // increment one in the Y axis
+			car_x+=velocity;
+			car_y++; // increment one in the Y axis
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car_x));
@@ -208,6 +209,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			old_position.addTerm(new NumberTermImpl(car_y));
 			
 			// car_y is not altered
+			car_x+=velocity;
 			car_y--; // increment one in the Y axis
 			
 			Predicate at = new Predicate("at");
