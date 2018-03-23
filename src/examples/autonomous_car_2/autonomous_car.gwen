@@ -1,0 +1,27 @@
+GWENDOLEN
+
+:name: car
+
+:Initial Beliefs:
+
+at(0,0)
+
+:Initial Goals:
+
+:Plans:
++start : {True} <- print(start), sensor_enable, +!sensor_enable [achieve];
+
++!sensor_enable [achieve] : {~B no_way} <- +!go_forward [perform];
++!sensor_enable [achieve] : {B no_way} <- +stopped;
++!sensor_enable [achieve] : {B go_left} <- left, +!go_forward [perform];
++!sensor_enable [achieve] : {B go_right} <- right, +!go_forward [perform];
+
+
++!go_forward [perform] : {~B stopped, ~B go_left, ~B go_right} <- run, *going_forward, +!go_forward [perform];
++!go_forward [perform] : {~B stopped, B go_left} <- left, *going_forward, +!go_forward [perform];
++!go_forward [perform] : {~B stopped, B go_right} <- right, *going_forward, +!go_forward [perform];
++!go_forward [perform] : {B stopped} <- +go_forward;
+
++at(0,100) : {True} <- stop;
+
++stopped : {True} <- print(END);

@@ -79,7 +79,7 @@ public class Simulator extends JComponent{
 			for (int y = 0; y < gridSize; y++) {
 
 				String cellName = GridCell.getIndex(x, y);
-				environmentGrid.put(cellName, new GridCell(x, y, false, false));
+				environmentGrid.put(cellName, new GridCell(x, y, false));
 
 			}
 		}
@@ -131,34 +131,10 @@ public class Simulator extends JComponent{
 		for (int x = 0; x < this.gridSize; x++) {
 			for (int y = 0; y < this.gridSize; y++) {
 				
-				isVisible = this.environmentGrid.get(GridCell.getIndex(x, y)).isVisible();
 				hasObstacle = this.environmentGrid.get(GridCell.getIndex(x, y)).hasObstacle();
-				hasDamageLevel = !this.environmentGrid.get(GridCell.getIndex(x, y)).getDamageLevel().equals("none");
 				
 				if(hasObstacle) {
 					g.setColor(Color.orange);
-					g.fillRect( getGridX( x ), getGridY( y ), this.gridAmplifier, this.gridAmplifier);
-				}
-				
-				if( hasDamageLevel ){
-					String damageLevel = this.environmentGrid.get(GridCell.getIndex(x, y)).getDamageLevel();
-					switch(damageLevel) {
-					case "high":
-						g.setColor(high);
-						break;
-					case "moderate":
-						g.setColor(moderate);
-						break;
-					case "low":
-						g.setColor(low);
-						break;
-					}
-					g.fillRect( getGridX( x ), getGridY( y ), this.gridAmplifier, this.gridAmplifier);
-				}
-				
-
-				if( !isVisible ) {
-					g.setColor(Color.BLACK);
 					g.fillRect( getGridX( x ), getGridY( y ), this.gridAmplifier, this.gridAmplifier);
 				}
  
@@ -267,7 +243,6 @@ public class Simulator extends JComponent{
 			case	"depot":
 				depot.setX( Integer.parseInt( messageArray[1] ) );
 				depot.setY( Integer.parseInt( messageArray[2] ) );
-				this.environmentGrid.get( GridCell.getIndex(x, y) ).setIsVisible(true);
 				break;
 			case	"carLocation":
 				d = messageArray[3];
@@ -275,17 +250,6 @@ public class Simulator extends JComponent{
 				car.setY( y );
 				
 				this.direction = d;
-				
-				this.environmentGrid.get( GridCell.getIndex(x, y) ).setIsVisible(true);
-				
-				if(y < (this.gridSize-1))
-					this.environmentGrid.get( GridCell.getIndex(x, y+1) ).setIsVisible(true);
-				if(y > 0)
-					this.environmentGrid.get( GridCell.getIndex(x, y-1) ).setIsVisible(true);
-				if(x < (this.gridSize-1))
-					this.environmentGrid.get( GridCell.getIndex(x+1, y) ).setIsVisible(true);
-				if(x > 0)
-					this.environmentGrid.get( GridCell.getIndex(x-1, y) ).setIsVisible(true);
 				
 				if(  	(car.getX() == pickUp.getX() && car.getY() == pickUp.getY()) ||
 					(car.getX() == dropOff.getX() && car.getY() == dropOff.getY()) ||
@@ -296,16 +260,6 @@ public class Simulator extends JComponent{
 				    parked = false;
 				
 				isCrashed = false;
-				String damageLevel = this.environmentGrid.get( GridCell.getIndex(x, y) ).getDamageLevel();
-				
-				if( !damageLevel.equals("none") ){
-				    
-				    if(damageLevel.equals("high")) carColor = high;
-				    else if(damageLevel.equals("moderate") && carColor != high) carColor = moderate;
-				    else if(damageLevel.equals("low") && carColor != moderate) carColor = low;
-				    
-				    isCrashed = true;
-				}
 				break;
 			case	"obstacle":
 				this.environmentGrid.get( GridCell.getIndex(x, y) ).setObstacle(true);
@@ -324,24 +278,6 @@ public class Simulator extends JComponent{
 				 */
 				this.dropOff.setX( x );
 				this.dropOff.setY( y ); 
-				break;
-				
-			case "obstacleDamage":
-				/*
-				 * Com base nas coordenadas x e y informadas, a posição (x,y) do grid interno (environmentGrid) 
-				 * é atualizado com a informações sobre o nível de dado definido pelo ambiente do agente.
-				 * */ 
-				this.environmentGrid.get( GridCell.getIndex(x, y) ).setDamageLevel(messageArray[3]);
-				break;
-			case "removeObstacleDamage":
-				/*
-				 * Define o valor "none" para todas as coordenadas do do grid interno (environmentGrid). 
-				 * */ 
-				for (int X = 0; X < this.gridSize; X++) {
-					for (int Y = 0; Y < this.gridSize; Y++) {
-						this.environmentGrid.get( GridCell.getIndex(X, Y)).setDamageLevel("none");
-					}
-				}
 				break;
 			case "refuseRide":
 				/*
