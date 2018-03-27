@@ -48,8 +48,6 @@ public class Simulator extends JFrame{
    private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.
    private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();
 
-   private int velocity = 50;
-
    private static DatagramSocket server;
 
    private int fps = 1000 / 48;
@@ -58,6 +56,8 @@ public class Simulator extends JFrame{
    private boolean animate = true;
    
    private byte lanesQuantity = 2;
+   private byte obstaclesQuantity = 4;
+   private byte carVelocity = 10;
 
    private Simulator() {
        window = new JPanel() {
@@ -70,20 +70,20 @@ public class Simulator extends JFrame{
                g.setColor(Color.decode("#dcdcdc"));
 
                // Draw middle line
-               for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
-                   g.fillRect(i-car.getX()*velocity, height/2*proportion, 70*proportion, 2*proportion);
+               for(int i = 0; i < width+car.getX()*carVelocity; i += 110*proportion) {
+                   g.fillRect(i-car.getX()*carVelocity, height/2*proportion, 70*proportion, 2*proportion);
                }
                
                if(lanesQuantity > 2) {
             	   //faz a terceira pista
-                   for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
-                       g.fillRect(i-car.getX()*velocity, height/2-105*proportion, 70*proportion, 2*proportion);
+                   for(int i = 0; i < width+car.getX()*carVelocity; i += 110*proportion) {
+                       g.fillRect(i-car.getX()*carVelocity, height/2-105*proportion, 70*proportion, 2*proportion);
                    }
                }
                if(lanesQuantity > 3) {
             	   //faz a quarta pista
-                   for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
-                       g.fillRect(i-car.getX()*velocity, height/2-210*proportion, 70*proportion, 2*proportion);
+                   for(int i = 0; i < width+car.getX()*carVelocity; i += 110*proportion) {
+                       g.fillRect(i-car.getX()*carVelocity, height/2-210*proportion, 70*proportion, 2*proportion);
                    }
                }
 
@@ -136,7 +136,7 @@ public class Simulator extends JFrame{
                }
 
                for(Coordinate c : obstacles) {
-                   g.drawImage(bi_stone, (c.getX()*velocity)-(car.getX()*velocity), height/2-87*proportion + 110*c.getY(), 155*proportion, 70*proportion, null);
+                   g.drawImage(bi_stone, (c.getX()*carVelocity)-(car.getX()*carVelocity), height/2-87*proportion + 110*c.getY(), 155*proportion, 70*proportion, null);
                }
            }
        };
@@ -168,7 +168,7 @@ public class Simulator extends JFrame{
        jS_obstaclesQuantity = new JSlider();
        jTF_obstaclesQuantity = new JTextField();
        jS_obstaclesQuantity.setMaximum(50);
-       jS_obstaclesQuantity.setValue(10);
+       jS_obstaclesQuantity.setValue(4);
        jS_obstaclesQuantity.setMinimum(1);
        jS_obstaclesQuantity.setMajorTickSpacing(1);
        jS_obstaclesQuantity.setPaintTicks(true);
@@ -214,6 +214,8 @@ public class Simulator extends JFrame{
     	   @Override
     	   public void actionPerformed(ActionEvent actionEvent) {
     		   lanesQuantity = (byte) jS_lanesQuantity.getValue();
+    		   obstaclesQuantity = (byte) jS_obstaclesQuantity.getValue();
+    		   carVelocity = (byte) jS_carVelocity.getValue();
     		   window.repaint();
     	   }
        });
@@ -309,7 +311,7 @@ public class Simulator extends JFrame{
    private JComboBox<String> jCB_autoSteerTechnique;
    private JButton jB_apply;
    
-   private JMenu jMenu1;
-   private JMenu jMenu2;
-   private JMenuBar jMenuBar1;
+   private JMenu jM_File;
+   private JMenu jM_Edit;
+   private JMenuBar jMB_menuBar;
 }
