@@ -15,6 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
@@ -52,6 +53,8 @@ public class Simulator extends JFrame{
    private int proportion = 1;
 
    private boolean animate = true;
+   
+   private byte lanesQuantity = 2;
 
    private Simulator() {
        window = new JPanel() {
@@ -67,10 +70,37 @@ public class Simulator extends JFrame{
                for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
                    g.fillRect(i-car.getX()*velocity, height/2*proportion, 70*proportion, 2*proportion);
                }
+               
+               if(lanesQuantity > 2) {
+            	   //faz a terceira pista
+                   for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
+                       g.fillRect(i-car.getX()*velocity, height/2-105*proportion, 70*proportion, 2*proportion);
+                   }
+               }
+               if(lanesQuantity > 3) {
+            	   //faz a quarta pista
+                   for(int i = 0; i < width+car.getX()*velocity; i += 110*proportion) {
+                       g.fillRect(i-car.getX()*velocity, height/2-210*proportion, 70*proportion, 2*proportion);
+                   }
+               }
 
-           		// Draw left line
-               g.fillRect(0, height/2-105*proportion, width, 2*proportion);
-               g.fillRect(0, height/2-120*proportion, width, 2*proportion);
+               switch(lanesQuantity) {
+               case 2:
+                   // Draw left line
+                   g.fillRect(0, height/2-105*proportion, width, 2*proportion);
+                   g.fillRect(0, height/2-120*proportion, width, 2*proportion);
+                   break;
+               case 3:
+                   // Draw left line
+                   g.fillRect(0, height/2-210*proportion, width, 2*proportion);
+                   g.fillRect(0, height/2-225*proportion, width, 2*proportion);
+                   break;
+               case 4:
+                   // Draw left line
+                   g.fillRect(0, height/2-315*proportion, width, 2*proportion);
+                   g.fillRect(0, height/2-330*proportion, width, 2*proportion);
+                   break;
+               }
 
                // Draw right line
                g.fillRect(0, height/2+105*proportion, width, 2*proportion);
@@ -149,6 +179,7 @@ public class Simulator extends JFrame{
        jB_apply = new JButton("Apply");
        jB_apply.addActionListener(new ActionListener() {
     	   public void actionPerformed(ActionEvent actionEvent) {
+    		   lanesQuantity = (byte) jS_lanesQuantity.getValue();
     		   window.repaint();
     	   }
        });
