@@ -19,7 +19,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
+import javax.swing.JTextField;
 import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -143,33 +146,63 @@ public class Simulator extends JFrame{
        
        jL_lanesQuantity = new JLabel("Lanes quantity:");
        jS_lanesQuantity = new JSlider();
+       jTF_lanesQuantity = new JTextField();
        jS_lanesQuantity.setMaximum(4);
        jS_lanesQuantity.setValue(2);
        jS_lanesQuantity.setMinimum(2);
        jS_lanesQuantity.setMajorTickSpacing(1);
        jS_lanesQuantity.setPaintTicks(true);
+       jS_lanesQuantity.addChangeListener(new ChangeListener() {			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+	    	       jTF_lanesQuantity.setText(String.valueOf(jS_lanesQuantity.getValue())+" lanes");
+			}
+		});
+       jTF_lanesQuantity.setEditable(false);
+       jTF_lanesQuantity.setText(String.valueOf(jS_lanesQuantity.getValue())+" lanes");
        simulatorSettings.add(jL_lanesQuantity);
        simulatorSettings.add(jS_lanesQuantity);
+       simulatorSettings.add(jTF_lanesQuantity);
        
        jL_obstaclesQuantity = new JLabel("Obstacles quantity:");
        jS_obstaclesQuantity = new JSlider();
+       jTF_obstaclesQuantity = new JTextField();
        jS_obstaclesQuantity.setMaximum(50);
        jS_obstaclesQuantity.setValue(10);
        jS_obstaclesQuantity.setMinimum(1);
        jS_obstaclesQuantity.setMajorTickSpacing(1);
        jS_obstaclesQuantity.setPaintTicks(true);
+       jS_obstaclesQuantity.addChangeListener(new ChangeListener() {			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+	    	       jTF_obstaclesQuantity.setText(String.valueOf(jS_obstaclesQuantity.getValue())+" obstacles");
+			}
+		});
+       jTF_obstaclesQuantity.setEditable(false);
+       jTF_obstaclesQuantity.setText(String.valueOf(jS_obstaclesQuantity.getValue())+" obstacles");
        simulatorSettings.add(jL_obstaclesQuantity);
        simulatorSettings.add(jS_obstaclesQuantity);
+       simulatorSettings.add(jTF_obstaclesQuantity);
        
        jL_carVelocity = new JLabel("Car velocity:");
        jS_carVelocity = new JSlider();
+       jTF_carVelocity = new JTextField();
        jS_carVelocity.setMaximum(50);
        jS_carVelocity.setValue(10);
        jS_carVelocity.setMinimum(1);
        jS_carVelocity.setMajorTickSpacing(1);
        jS_carVelocity.setPaintTicks(true);
+       jS_carVelocity.addChangeListener(new ChangeListener() {			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+	    	       jTF_carVelocity.setText(String.valueOf(jS_carVelocity.getValue())+" km");
+			}
+		});
+       jTF_carVelocity.setEditable(false);
+       jTF_carVelocity.setText(String.valueOf(jS_carVelocity.getValue())+" km");
        simulatorSettings.add(jL_carVelocity);
        simulatorSettings.add(jS_carVelocity);
+       simulatorSettings.add(jTF_carVelocity);
        
        jL_autoSteerTechnique = new JLabel("Auto steer technique:");
        jCB_autoSteerTechnique = new JComboBox<String>(new DefaultComboBoxModel<>(new String[] {"Tecnique 1","Tecnique 2","Tecnique 3"}));
@@ -178,6 +211,7 @@ public class Simulator extends JFrame{
        
        jB_apply = new JButton("Apply");
        jB_apply.addActionListener(new ActionListener() {
+    	   @Override
     	   public void actionPerformed(ActionEvent actionEvent) {
     		   lanesQuantity = (byte) jS_lanesQuantity.getValue();
     		   window.repaint();
@@ -264,10 +298,13 @@ public class Simulator extends JFrame{
    private JPanel simulatorSettings;
    private JLabel jL_lanesQuantity;
    private JSlider jS_lanesQuantity;
+   private JTextField jTF_lanesQuantity;
    private JLabel jL_obstaclesQuantity;
    private JSlider jS_obstaclesQuantity;
+   private JTextField jTF_obstaclesQuantity;
    private JLabel jL_carVelocity;
    private JSlider jS_carVelocity;
+   private JTextField jTF_carVelocity;
    private JLabel jL_autoSteerTechnique;
    private JComboBox<String> jCB_autoSteerTechnique;
    private JButton jB_apply;
