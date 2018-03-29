@@ -16,7 +16,6 @@ at(0,0)
 +!sensor_enable [achieve] : {B go_left} <- left, +!go_forward [perform];
 +!sensor_enable [achieve] : {B go_right} <- right, +!go_forward [perform];
 
-
 +!go_forward [perform] : {~B stopped, ~B go_left, ~B go_right} <- run, *going_forward, +!go_forward [perform];
 +!go_forward [perform] : {~B stopped, B go_left} <- left, *going_forward, +!go_forward [perform];
 +!go_forward [perform] : {~B stopped, B go_right} <- right, *going_forward, +!go_forward [perform];

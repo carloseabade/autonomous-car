@@ -50,22 +50,22 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		this.car_y = 0;
 		this.velocity = 1;
 		
-		this.sensor = 6;
+		this.sensor = 9;
 		
 		// 1st obstacle
-		this.obs1_x = 6;
+		this.obs1_x = 20;
 		this.obs1_y = 0;
 		
 		//2nd obstacle
-		this.obs2_x = 20;
+		this.obs2_x = 30;
 		this.obs2_y = 1;
 		
 		//3rd obstacle
-		this.obs3_x = 28;
+		this.obs3_x = 40;
 		this.obs3_y = 1;
 
 		//4th obstacle
-		this.obs4_x = 40;
+		this.obs4_x = 50;
 		this.obs4_y = 0;
 
 		this.waitTimeDefault = 750; 
@@ -121,19 +121,19 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
 			
-			if(car_x+sensor == obs1_x && car_y == obs1_y) {
+			if(car_y == obs1_y && car_x < obs1_x && car_x+sensor >= obs1_x) {
 				Predicate go_right = new Predicate("go_right");
 				addPercept(agName, go_right);
 			} 
-			else if(car_x+sensor == obs2_x && car_y == obs2_y) {
+			else if(car_y == obs2_y && car_x < obs2_x && car_x+sensor >= obs2_x) {
 				Predicate go_left = new Predicate("go_left");
 				addPercept(agName, go_left);
 			}
-			else if(car_x+sensor == obs3_x && car_y == obs3_y) {
+			else if(car_y == obs3_y && car_x < obs3_x && car_x+sensor >= obs3_x) {
 				Predicate go_left = new Predicate("go_left");
 				addPercept(agName, go_left);
 			}
-			else if(car_x+sensor == obs4_x && car_y == obs4_y) {
+			else if(car_y == obs4_y && car_x < obs4_x && car_x+sensor >= obs4_x) {
 				Predicate go_left = new Predicate("go_right");
 				addPercept(agName, go_left);
 			}
