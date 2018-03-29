@@ -51,14 +51,16 @@ public class Simulator extends JFrame{
    private static DatagramSocket server;
 
    private int fps = 1000 / 48;
-   private int proportion = 1;
-
    private boolean animate = true;
    
    private byte lanesQuantity = 2;
    private byte obstaclesQuantity = 4;
-   private byte carVelocity = 10;
-
+   private byte carVelocity = 1;
+   
+//   5.03682 m = 155 px
+//   	   1 m = 30.77338479437423 px ~ 31 px
+   private double pixelsPerMeter = 30.77338479437423;
+   
    private Simulator() {
        window = new JPanel() {
            @Override
@@ -70,53 +72,43 @@ public class Simulator extends JFrame{
                g.setColor(Color.decode("#dcdcdc"));
 
                // Draw middle line
-               for(int i = 0; i < width+car.getX()*carVelocity; i += 110*proportion) {
-                   g.fillRect(i-car.getX()*carVelocity, height/2*proportion, 70*proportion, 2*proportion);
+               for(int i = 0; i < width+car.getX()*pixelsPerMeter*carVelocity; i += 110) {
+                   g.fillRect((int) (i-car.getX()*pixelsPerMeter*carVelocity), height/2, 70, 2);
                }
                
                if(lanesQuantity > 2) {
             	   //faz a terceira pista
-                   for(int i = 0; i < width+car.getX()*carVelocity; i += 110*proportion) {
-                       g.fillRect(i-car.getX()*carVelocity, height/2-105*proportion, 70*proportion, 2*proportion);
-                   }
+                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
                }
                if(lanesQuantity > 3) {
             	   //faz a quarta pista
-                   for(int i = 0; i < width+car.getX()*carVelocity; i += 110*proportion) {
-                       g.fillRect(i-car.getX()*carVelocity, height/2-210*proportion, 70*proportion, 2*proportion);
+                   for(int i = 0; i < width+car.getX()*pixelsPerMeter*carVelocity; i += 110) {
+                       g.fillRect((int) (i-car.getX()*pixelsPerMeter*carVelocity), (int) (height/2-(3.6*2*pixelsPerMeter)), 70, 2);
                    }
                }
 
                switch(lanesQuantity) {
                case 2:
                    // Draw left line
-                   g.fillRect(0, height/2-105*proportion, width, 2*proportion);
-                   g.fillRect(0, height/2-120*proportion, width, 2*proportion);
+                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
                    break;
                case 3:
                    // Draw left line
-                   g.fillRect(0, height/2-210*proportion, width, 2*proportion);
-                   g.fillRect(0, height/2-225*proportion, width, 2*proportion);
+                   g.fillRect(0, (int) (height/2-(3.6*2*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.6*2*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
                    break;
                case 4:
                    // Draw left line
-                   g.fillRect(0, height/2-315*proportion, width, 2*proportion);
-                   g.fillRect(0, height/2-330*proportion, width, 2*proportion);
+                   g.fillRect(0, (int) (height/2-(3.6*3*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.6*3*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
                    break;
                }
 
                // Draw right line
-               g.fillRect(0, height/2+105*proportion, width, 2*proportion);
-               g.fillRect(0, height/2+120*proportion, width, 2*proportion);
-
-               // Draw sensor
-               BufferedImage bi_sensor = null;
-               try {
-                   bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides.png"));
-               } catch (IOException e) {
-                   e.printStackTrace();
-               }
-               g.drawImage(bi_sensor, 50-123*proportion, height/2-87-122*proportion + 110*car.getY(), 400*proportion, 312*proportion, null);
+               g.fillRect(0, (int) (height/2+(3.6*pixelsPerMeter)), width, 2);
+               g.fillRect(0, (int) (height/2+(3.6*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
 
                // Draw car
                BufferedImage bi_car = null;
@@ -125,7 +117,16 @@ public class Simulator extends JFrame{
                } catch (IOException e) {
                    e.printStackTrace();
                }
-               g.drawImage(bi_car, 50*proportion, height/2-87*proportion + 110*car.getY(), 155*proportion, 70*proportion, null);
+               g.drawImage(bi_car, 1, (int) (height/2-((0.7+2.2-((1.4+2.2)*car.getY()))*pixelsPerMeter)), 155, 70, null);
+
+               // Draw sensor
+               BufferedImage bi_sensor = null;
+               try {
+                   bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides2.png"));
+               } catch (IOException e) {
+                   e.printStackTrace();
+               }
+               g.drawImage(bi_sensor, (int) (1-(4.0*pixelsPerMeter)), (int) (height/2-((0.7+2.2-((1.4+2.2)*car.getY()))*pixelsPerMeter)-(4.0*pixelsPerMeter)), 400, 312, null);
 
                // Draw obstacles
                BufferedImage bi_stone = null;
@@ -134,9 +135,8 @@ public class Simulator extends JFrame{
                } catch (IOException e) {
                    e.printStackTrace();
                }
-
                for(Coordinate c : obstacles) {
-                   g.drawImage(bi_stone, (c.getX()*carVelocity)-(car.getX()*carVelocity), height/2-87*proportion + 110*c.getY(), 155*proportion, 70*proportion, null);
+                   g.drawImage(bi_stone, (int) ((c.getX()-car.getX())*pixelsPerMeter), (int) (height/2-((0.7+2.2-((1.4+2.2)*c.getY()))*pixelsPerMeter)), 155, 70, null);
                }
            }
        };
@@ -188,7 +188,7 @@ public class Simulator extends JFrame{
        jS_carVelocity = new JSlider();
        jTF_carVelocity = new JTextField();
        jS_carVelocity.setMaximum(50);
-       jS_carVelocity.setValue(10);
+       jS_carVelocity.setValue(1);
        jS_carVelocity.setMinimum(1);
        jS_carVelocity.setMajorTickSpacing(1);
        jS_carVelocity.setPaintTicks(true);
