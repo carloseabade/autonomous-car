@@ -1,6 +1,5 @@
 package autonomous_car_2;
 
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import ail.mas.DefaultEnvironmentwRandomness;
 import ail.mas.MAS;
@@ -9,108 +8,97 @@ import ail.syntax.NumberTermImpl;
 import ail.syntax.Predicate;
 import ail.syntax.Unifier;
 import ail.util.AILexception;
+import autonomous_car.Client;
 
-public final class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
+public class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
 	
 	
-	private Coordinate car = new Coordinate(0, 0); // Current coordinates of the agent/vehicle
-	private int velocity;
-	private int sensor; // Sensor range
-	
+	private Coordinate car = new Coordinate(0, 0); //Current coordinates of the agent/vehicle
+	private int velocity; //Agent/vehicle velocity
+	private int sensor; //Sensor range
 	private int nObstacles; // Total of static obstacles
-	
-	private static ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>(); 
-	
+	private Coordinate obstacle1 = new Coordinate(6,0);
+	private Coordinate obstacle2 = new Coordinate(6,0);
 	private boolean simulate; // Determines if the environment should send message to the simulator
 	private int waitTimeLocation; // Wait time to send first message
-	
-	// 1st obstacle
-	private int obs1_x;
-	private int obs1_y;
-	
-	//2nd obstacle
-	private int obs2_x;
-	private int obs2_y;
-	
-	//3rd obstacle
-	private int obs3_x;
-	private int obs3_y;
 
-	//4th obstacle
-	private int obs4_x;
-	private int obs4_y;
-
-	
 	// Environment setup
 	@Override
 	public void setMAS(MAS m) {
 		super.setMAS(m);
-			
-		// Info about agent/vehicle - Default Values
 		
 		this.velocity = 1;
 		
 		this.sensor = 6;
 		
-		this.nObstacles = 5;
+		this.nObstacles = 2;
 		
 		this.simulate = true;
 		
 		this.waitTimeLocation = 300; 	
 
-		// 1st obstacle
-		this.obs1_x = 6;
-		this.obs1_y = 0;
-		
-		//2nd obstacle
-		this.obs2_x = 20;
-		this.obs2_y = 1;
-		
-		//3rd obstacle
-		this.obs3_x = 28;
-		this.obs3_y = 1;
-
-		//4th obstacle
-		this.obs4_x = 40;
-		this.obs4_y = 0;
-
-		initObstacles(); // Obstacles (Coordinates)
+		initObstacle(); // Obstacles (Coordinates)
 		
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
+		
+		Predicate lane0 = new Predicate("lane0");
+		addPercept("car", lane0);
+		
 
-
-	}
-	
-	public static ArrayList<Coordinate> getObstacles(){
-		return obstacles;
 	}
 	
 	/*
 	 * Set 'nObstacles' in the environment randomly.
-	 * Method checks if the coordinate (x,y) doesn't have a obstacle already have an obstacle.
-	 * Guarantees that there isn't an obstacle in the agent's initial position and in the depot's location.
 	 */
-	private void initObstacles() {
+	private void initObstacle() {
 		
-		Coordinate c = new Coordinate(0, 0);
-		int x = 6;
-		int y = 0;
+		int x;
+		int y;
 		
-		c.setX(x);
-	    c.setY(y);
-	    
-	    obstacles.add(c);
+		if (nObstacles > 0) {
+			do {
+				x = obstacle1.getX() + (int)(Math.random() * 31);
+				y = (int) (Math.random() * 2);
+			}while (x == 0 || x < obstacle1.getX() || (x == obstacle1.getX() && y == obstacle1.getY() && x == obstacle2.getX() && y == obstacle2.getY()));
+
+			obstacle1.setX(x);
+			obstacle1.setY(y);
+
+		}
 		
-		/*for(int i = 0; i < this.nObstacles; i++) {
-		    	    x = (int) (Math.random() * 100 + car.getX());
-		    	    y = (int) (Math.random() * 4);
-		    	    
-		    	    c.setX(x);
-		    	    c.setY(y);
-		    	    
-		    	    obstacles.add(c);
-		}*/
+		nObstacles--;
+
+		if (nObstacles > 0) {
+			do {					
+				x = obstacle2.getX() + (int)(Math.random() * 31);
+				y = (int) (Math.random() * 2);
+			}while (x == 0 || x < obstacle2.getX() || (x == obstacle2.getX() && y == obstacle2.getY() && x == obstacle1.getX() && y == obstacle1.getY()));
+
+				obstacle2.setX(x);
+				obstacle2.setY(y);
+
+		}
+		
+		// Simulator Setup
+		if(simulate) {
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obstacle1.getX()), String.valueOf(obstacle1.getY())} ) );
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obstacle2.getX()), String.valueOf(obstacle2.getY())} ) );
+			    
+			try {
+				TimeUnit.MILLISECONDS.sleep(100);
+			} catch(Exception e) {
+			    System.err.println(e);
+			}
+		}
+		
+		System.out.println("Obstacle1 X: " + obstacle1.getX());
+		System.out.println("Obstacle1 Y: " + obstacle1.getY());
+		System.out.println("Obstacle2 X: " + obstacle2.getX());
+		System.out.println("Obstacle2 Y: " + obstacle2.getY());
+		
 	}
 
 	
@@ -125,8 +113,7 @@ public final class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
 			old_position.addTerm(new NumberTermImpl(car.getX()));
 			old_position.addTerm(new NumberTermImpl(car.getY()));
 			
-			// car_x is not altered
-			car.setX(car.getX() + velocity); // increment one in the X axis
+			car.setX(car.getX() + velocity);
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car.getX()));
@@ -134,74 +121,67 @@ public final class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
 			
 			System.err.println("MOVING " + car.getX() + " " + car.getY());
 			
-			
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
-			
-			if(car.getX()+sensor == obs1_x && car.getY() == obs1_y) {
-				Predicate go_right = new Predicate("go_right");
-				addPercept(agName, go_right);
-			} 
-			else if(car.getX()+sensor == obs2_x && car.getY() == obs2_y) {
-				Predicate go_left = new Predicate("go_left");
-				addPercept(agName, go_left);
-			}
-			else if(car.getX()+sensor == obs3_x && car.getY() == obs3_y) {
-				Predicate go_left = new Predicate("go_left");
-				addPercept(agName, go_left);
-			}
-			else if(car.getX()+sensor == obs4_x && car.getY() == obs4_y) {
-				Predicate go_left = new Predicate("go_right");
-				addPercept(agName, go_left);
-			}
 
 			Predicate going_forward = new Predicate("going_forward");
 			addPercept(agName, going_forward);
-		}
-		else if (act.getFunctor().equals("sensor_enable")) {
 
-			if(car.getX()+sensor == obs1_x && (car.getX()+sensor == obs2_x || car.getX()+sensor == obs3_x || car.getX()+sensor == obs4_x)) {
-				Predicate no_way = new Predicate("no_way");
-				addPercept(agName, no_way);
-			}
-			else if(car.getX()+sensor == obs2_x && (car.getX()+sensor == obs1_x || car.getX()+sensor == obs3_x || car.getX()+sensor == obs4_x)) {
-				Predicate no_way = new Predicate("no_way");
-				addPercept(agName, no_way);
-			}
-			else if(car.getX()+sensor == obs3_x && (car.getX()+sensor == obs1_x || car.getX()+sensor == obs2_x || car.getX()+sensor == obs4_x)) {
-				Predicate no_way = new Predicate("no_way");
-				addPercept(agName, no_way);
-			}
-			else if(car.getX()+sensor == obs4_x && (car.getX()+sensor == obs1_x || car.getX()+sensor == obs2_x || car.getX()+sensor == obs3_x)) {
-				Predicate no_way = new Predicate("no_way");
-				addPercept(agName, no_way);
-			}
-			else if(car.getX()+sensor == obs1_x && car.getX() == obs1_y) {
-				Predicate go_right = new Predicate("go_right");
-				addPercept(agName, go_right);
-			} 
-			else if(car.getX()+sensor == obs2_x && car.getX() == obs2_y) {
-				Predicate go_left = new Predicate("go_left");
-				addPercept(agName, go_left);
-			}
-			else if(car.getX()+sensor == obs3_x && car.getX() == obs3_y) {
-				Predicate go_left = new Predicate("go_left");
-				addPercept(agName, go_left);
-			}
-			else if(car.getX()+sensor == obs4_x && car.getX() == obs4_y) {
-				Predicate go_left = new Predicate("go_right");
-				addPercept(agName, go_left);
+			
+		}
+		else if (act.getFunctor().equals("check_env")) {
+
+			if(car.getX()+sensor == obstacle1.getX() && car.getX()+sensor == obstacle2.getX()) {
+				Predicate obs1 = new Predicate("obs1");
+				
+				addPercept(agName, obs1);
+				
+				Predicate obs2 = new Predicate("obs2");
+				
+				addPercept(agName, obs2);
+				
+			} else if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
+				Predicate obs2 = new Predicate("obs2");
+				
+				Predicate same_lane = new Predicate("same_lane");
+				
+				addPercept(agName, same_lane);
+				addPercept(agName, obs2);
+				
+			} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()){
+				Predicate obs1 = new Predicate("obs1");
+				
+				Predicate same_lane = new Predicate("same_lane");
+				
+				addPercept(agName, same_lane);
+				addPercept(agName, obs1);	
 			}
 
 		}
-		else if(act.getFunctor().equals("right")) {
+		else if(act.getFunctor().equals("go_right")) {
 			
 			Predicate old_position = new Predicate("at");
 			old_position.addTerm(new NumberTermImpl(car.getX()));
 			old_position.addTerm(new NumberTermImpl(car.getY()));
 			
+			if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
+				Predicate obs2 = new Predicate("obs2");
+				
+				Predicate same_lane = new Predicate("same_lane");
+				
+				removePercept(agName, same_lane);
+				removePercept(agName, obs2);
+			} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {
+				Predicate obs1 = new Predicate("obs1");
+				
+				Predicate same_lane = new Predicate("same_lane");
+				
+				removePercept(agName, same_lane);
+				removePercept(agName, obs1);	
+			}
+			
 			car.setX(car.getX() + velocity);
-			car.setY(car.getY() + velocity); 
+			car.setY(car.getY() + 1); 
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car.getX()));
@@ -209,24 +189,42 @@ public final class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
 			
 			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
 			
+			Predicate lane1 = new Predicate("lane1");
+			Predicate lane0 = new Predicate("lane0");
+			
+			addPercept(agName, lane1);
+			removePercept(agName, lane0);
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
 
-			Predicate go_right = new Predicate("go_right");
-			removePercept(agName, go_right);
 			
 			Predicate going_forward = new Predicate("going_forward");
 			addPercept(agName, going_forward);
 		}
-		else if(act.getFunctor().equals("left")) {
+		else if(act.getFunctor().equals("go_left")) {
 			
 			Predicate old_position = new Predicate("at");
 			old_position.addTerm(new NumberTermImpl(car.getX()));
 			old_position.addTerm(new NumberTermImpl(car.getY()));
 			
+			if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
+				Predicate obs2 = new Predicate("obs2");
+				
+				Predicate same_lane = new Predicate("same_lane");
+				
+				removePercept(agName, same_lane);
+				removePercept(agName, obs2);
+			} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {
+				Predicate obs1 = new Predicate("obs1");
+				
+				Predicate same_lane = new Predicate("same_lane");
+				
+				removePercept(agName, same_lane);
+				removePercept(agName, obs1);				
+			}
 
 			car.setX(car.getX() + velocity);
-			car.setY(car.getY() + velocity); 
+			car.setY(car.getY() - 1); 
 			
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car.getX()));
@@ -234,11 +232,14 @@ public final class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
 			
 			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
 			
+			Predicate lane1 = new Predicate("lane1");
+			Predicate lane0 = new Predicate("lane0");
+			
+			addPercept(agName, lane0);
+			removePercept(agName, lane1);
+			
 			removePercept(agName, old_position); //remove old position
 			addPercept(agName, at); //inform new position to the agent
-
-			Predicate go_left = new Predicate("go_left");
-			removePercept(agName, go_left);
 			
 			Predicate going_forward = new Predicate("going_forward");
 			addPercept(agName, going_forward);
@@ -246,6 +247,9 @@ public final class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
 		else if(act.getFunctor().equals("stop")) {
 			Predicate stopped = new Predicate("stopped");
 			addPercept(agName, stopped);
+			
+			Predicate start = new Predicate("start");
+			removePercept(agName, start);
 		}
 		
 		super.executeAction(agName, act);

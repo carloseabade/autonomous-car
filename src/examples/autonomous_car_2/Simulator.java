@@ -2,10 +2,14 @@ package autonomous_car_2;
 
 import java.awt.Graphics;
 import java.awt.Toolkit;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+
+import autonomous_car.Coordinate;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -27,7 +31,8 @@ public class Simulator extends JFrame{
 	private int height = d.height;
 
 	private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.
-	
+	private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();
+		
 	private int velocity = 50;
 	
 	private static DatagramSocket server;
@@ -59,7 +64,7 @@ public class Simulator extends JFrame{
 				// Draw right line
 				g.fillRect(0, height/2+105*proportion, width, 2*proportion);
 				g.fillRect(0, height/2+120*proportion, width, 2*proportion);
-
+				
 			    // Draw sensor
 				BufferedImage bi_sensor = null;
 		        try {
@@ -85,8 +90,7 @@ public class Simulator extends JFrame{
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-		        for(Coordinate c : AutonomousCarEnv.getObstacles()) {
-		        	System.out.println(c.getX() + " " + c.getY());
+		        for(Coordinate c : obstacles) {
 		        	g.drawImage(bi_stone, (c.getX()*velocity)-(car.getX()*velocity), height/2-87*proportion + 110*c.getY(), 155*proportion, 70*proportion, null);
 		        }
 			}
@@ -125,6 +129,9 @@ public class Simulator extends JFrame{
 				car.setX(Integer.parseInt(messageArray[1]));
 				car.setY(Integer.parseInt(messageArray[2]));
 				break;
+			case	"obsLocation":
+				obstacles.add(new Coordinate((Integer.parseInt(messageArray[1])), (Integer.parseInt(messageArray[2]))));
+				break;
 			default:
 				System.out.println("Erro");
 				System.out.println(messageArray[0]);
@@ -159,12 +166,11 @@ public class Simulator extends JFrame{
 		}
 	}
 	
-	
 	public static void main(String args[]){
 		Simulator sim = new Simulator();
 		sim.startAnimation();
 	 }
-		
+			
 }
 
 

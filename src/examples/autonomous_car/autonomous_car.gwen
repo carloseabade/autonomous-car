@@ -3,24 +3,64 @@ GWENDOLEN
 :name: car
 
 :Initial Beliefs:
-
 at(0,0)
 
 :Initial Goals:
 
 :Plans:
-+start : {True} <- print(start), sensor_enable, +!sensor_enable [achieve];
++start : {True} <- 
+	print(start),  
+	+!sensor_enable [perform];
 
-+!sensor_enable [achieve] : {~B no_way} <- +!go_forward [perform];
-+!sensor_enable [achieve] : {B no_way} <- +stopped;
-+!sensor_enable [achieve] : {B go_left} <- left, +!go_forward [perform];
-+!sensor_enable [achieve] : {B go_right} <- right, +!go_forward [perform];
 
-+!go_forward [perform] : {~B stopped, ~B go_left, ~B go_right} <- run, *going_forward, +!go_forward [perform];
-+!go_forward [perform] : {~B stopped, B go_left} <- left, *going_forward, +!go_forward [perform];
-+!go_forward [perform] : {~B stopped, B go_right} <- right, *going_forward, +!go_forward [perform];
-+!go_forward [perform] : {B stopped} <- +go_forward;
++!sensor_enable [perform] : {True} <- 
+	print(sensor_enable), 
+	+sensor_enable,
+	check_env, 
+	print(check_env), 
+	+!go_forward [perform];
 
-+at(0,100) : {True} <- stop;
+
++!go_forward [perform] : {~B obs1, ~B obs2} <- 
+	run, 
+	*going_forward, 
+	check_env, 
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B obs1, B obs2} <- 
+	print(stop), 
+	stop,
+	+go_forward;
+	
++!go_forward [perform] : {B obs1, B same_lane, B lane1} <- 
+	print(go_left), 
+	go_left,  
+	*going_forward, 
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B obs1, B same_lane, B lane0} <- 
+	print(go_right), 
+	go_right,  
+	*going_forward, 
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B obs2, B same_lane, B lane1} <- 
+	print(go_left), 
+	go_left, 
+	*going_forward, 
+	check_env, 
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B obs2, B same_lane, B lane0} <- 
+	print(go_right), 
+	go_right, 
+	*going_forward,
+	 check_env, 
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B stopped} <- 
+	+go_forward;
 
 +stopped : {True} <- print(END);
