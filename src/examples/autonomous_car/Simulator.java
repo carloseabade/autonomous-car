@@ -122,11 +122,11 @@ public class Simulator extends JFrame{
                // Draw sensor
                BufferedImage bi_sensor = null;
                try {
-                   bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides2.png"));
+                   bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides.png"));
                } catch (IOException e) {
                    e.printStackTrace();
                }
-               g.drawImage(bi_sensor, (int) (1-(4.0*pixelsPerMeter)), (int) (height/2-((0.7+2.2-((1.4+2.2)*car.getY()))*pixelsPerMeter)-(4.0*pixelsPerMeter)), 400, 312, null);
+               g.drawImage(bi_sensor, (int) (1-(4.0*pixelsPerMeter)), (int) (height/2-((0.7+2.2-((1.4+2.2)*car.getY()))*pixelsPerMeter)-(4.0*pixelsPerMeter)), 403, 318, null);
 
                // Draw obstacles
                BufferedImage bi_stone = null;
