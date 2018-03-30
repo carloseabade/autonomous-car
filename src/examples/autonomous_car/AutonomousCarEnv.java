@@ -1,5 +1,6 @@
 package autonomous_car;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import ail.mas.DefaultEnvironment;
 import ail.mas.MAS;
@@ -16,11 +17,15 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private Coordinate car = new Coordinate(0, 0); //Current coordinates of the agent/vehicle
 	private int velocity; //Agent/vehicle velocity
 	private int sensor; //Sensor range
+	
 	private int nObstacles; //Total of static obstacles
-	private Coordinate obstacle1 = new Coordinate(9,0);
-	private Coordinate obstacle2 = new Coordinate(9,0);
+	private ArrayList<Coordinate> obstacles;
+	private Coordinate obstacle1;
+	private Coordinate obstacle2;
+	
 	private boolean simulate; //Determines if the environment should send message to the simulator
 	private int waitTimeLocation; //Wait time to send first message
+	private int controlObstacles = 0; 
 	
 	// Environment setup
 	@Override
@@ -32,30 +37,24 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		
 		this.sensor = 9;
 		
-		this.nObstacles = 2;
+		this.nObstacles = 4;
 		
 		this.simulate = true;
 		
-		this.waitTimeLocation = 300; 	
+		this.waitTimeLocation = 300;
+		
+		obstacles = new ArrayList<Coordinate>(nObstacles);
 
-		initObstacle(); //Set Obstacles (Coordinates)
+		initObstacle(); //Initiate Obstacles (Coordinates)
+		
+		setObstacles(); //Set Obstacles (Coordinates)
 		
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
 		
-		if (car.getY() == 0) {
-			Predicate lane0 = new Predicate("lane0");
-			addPercept("car", lane0);
-		} else if (car.getY() == 1) {
-			Predicate lane1 = new Predicate("lane1");
-			addPercept("car", lane1);
-		} else if (car.getY() == 2) {
-				Predicate lane2 = new Predicate("lane2");
-				addPercept("car", lane2);
-		} else if (car.getY() == 3) {
-			Predicate lane3 = new Predicate("lane3");
-			addPercept("car", lane3);
-		}
+		//Fazer esquema para o carro saber quantas lanes tem e em qual lane ele está. Perguntar pro Carlos em qual lane o carro começa quando tem 4 lanes
+		Predicate lane0 = new Predicate("lane0");
+		addPercept("car", lane0);
 		
 	}
 	
@@ -63,47 +62,51 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	 * Set 'nObstacles' in the environment randomly.
 	 */
 	private void initObstacle() {
+
+		int i = 0;
 		
-		int x;
-		int y;
+		Coordinate aux = new Coordinate((9 + (int)(Math.random() * 31)),((int) (Math.random() * 2)));		
 		
-		if (nObstacles > 0) {
+		obstacles.add(new Coordinate(aux.getX(), aux.getY()));
+		
+		while (i < nObstacles) {
 			do {
-				x = obstacle1.getX() + (int)(Math.random() * 31);
-				y = (int) (Math.random() * 2);
-			}while (x == 0 || x < obstacle1.getX() || (x == obstacle1.getX() && y == obstacle1.getY() && x == obstacle2.getX() && y == obstacle2.getY()));
-
-			obstacle1.setX(x);
-			obstacle1.setY(y);
-
+				aux.setX(obstacles.get(i).getX() + (int)(Math.random() * 31));
+				aux.setY((int) (Math.random() * 2));
+			} while (obstacles.get(i).getX() == aux.getX() && obstacles.get(i).getY() == aux.getY());
+			
+			obstacles.add(new Coordinate(aux.getX(), aux.getY()));
+			
+			i++;
 		}
 		
-		nObstacles--;
-
-		if (nObstacles > 0) {
-			do {					
-				x = obstacle2.getX() + (int)(Math.random() * 31);
-				y = (int) (Math.random() * 2);
-			}while (x == 0 || x < obstacle2.getX() || (x == obstacle2.getX() && y == obstacle2.getY() && x == obstacle1.getX() && y == obstacle1.getY()));
-
-				obstacle2.setX(x);
-				obstacle2.setY(y);
-
-		}
+		i = 0;
 		
 		// Simulator Setup
 		if(simulate) {
-			Client.sendMessage( Client.convertArray2String( new String[] 
-					{"obsLocation", String.valueOf(obstacle1.getX()), String.valueOf(obstacle1.getY())} ) );
-			Client.sendMessage( Client.convertArray2String( new String[] 
-					{"obsLocation", String.valueOf(obstacle2.getX()), String.valueOf(obstacle2.getY())} ) );
-			    
-			try {
-				TimeUnit.MILLISECONDS.sleep(100);
-			} catch(Exception e) {
-			    System.err.println(e);
+			while (i < nObstacles) {
+		
+				Client.sendMessage( Client.convertArray2String( new String[] 
+					{"obsLocation", String.valueOf(obstacles.get(i).getX()), String.valueOf(obstacles.get(i).getY())} ) );
+				
+				try {
+					TimeUnit.MILLISECONDS.sleep(100);
+				} catch(Exception e) {
+					System.err.println(e);
+				}
+				
+				i++;
 			}
 		}
+		
+	}
+	
+	private void setObstacles () {
+		
+		obstacle1 = obstacles.get(controlObstacles);
+		obstacle2 = obstacles.get(controlObstacles+1);
+		
+		controlObstacles += 2;
 		
 		System.out.println("Obstacle1 X: " + obstacle1.getX());
 		System.out.println("Obstacle1 Y: " + obstacle1.getY());
@@ -155,6 +158,10 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		public Unifier executeAction(String agName, Action act) throws AILexception {
 			
 			Unifier u = new Unifier();
+			
+			if(car.getX() > obstacle1.getX() && car.getX() > obstacle2.getX() && controlObstacles <= obstacles.size()) {
+				setObstacles();
+			}
 			
 			if(act.getFunctor().equals("run")) {
 				
