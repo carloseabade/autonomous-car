@@ -76,11 +76,13 @@ public class Simulator extends JFrame{
             	   //faz a terceira pista
                    g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
                    g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.8*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.8*pixelsPerMeter)), width, 2);
                }
                if(lanesQuantity > 3) {
             	   //faz a quarta pista
                    for(int i = 0; i < width+car.getX()*pixelsPerMeter*carVelocity; i += 110) {
-                       g.fillRect((int) (i-car.getX()*pixelsPerMeter*carVelocity), (int) (height/2-(3.6*2*pixelsPerMeter)), 70, 2);
+                       g.fillRect((int) (i-car.getX()*pixelsPerMeter*carVelocity), (int) (height/2-(3.8*2*pixelsPerMeter)), 70, 2);
                    }
                }
 
@@ -92,13 +94,13 @@ public class Simulator extends JFrame{
                    break;
                case 3:
                    // Draw left line
-                   g.fillRect(0, (int) (height/2-(3.6*2*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.6*2*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.8*2*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.8*2*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
                    break;
                case 4:
                    // Draw left line
-                   g.fillRect(0, (int) (height/2-(3.6*3*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.6*3*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.8*3*pixelsPerMeter)), width, 2);
+                   g.fillRect(0, (int) (height/2-(3.8*3*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
                    break;
                }
 
@@ -137,7 +139,7 @@ public class Simulator extends JFrame{
            }
        };
        simulatorSettings = new JPanel();
-       simulatorSettings.setBorder(BorderFactory.createTitledBorder("Configurações da simulação"));
+       simulatorSettings.setBorder(BorderFactory.createTitledBorder("Simulator Configuration:"));
        simulatorSettings.setLayout(new GridLayout(2,0));
        
        jL_lanesQuantity = new JLabel("Lanes quantity:");
@@ -179,27 +181,7 @@ public class Simulator extends JFrame{
        simulatorSettings.add(jL_obstaclesQuantity);
        simulatorSettings.add(jS_obstaclesQuantity);
        simulatorSettings.add(jTF_obstaclesQuantity);
-       
-       jL_carVelocity = new JLabel("Car velocity:");
-       jS_carVelocity = new JSlider();
-       jTF_carVelocity = new JTextField();
-       jS_carVelocity.setMaximum(50);
-       jS_carVelocity.setValue(1);
-       jS_carVelocity.setMinimum(1);
-       jS_carVelocity.setMajorTickSpacing(1);
-       jS_carVelocity.setPaintTicks(true);
-       jS_carVelocity.addChangeListener(new ChangeListener() {			
-			@Override
-			public void stateChanged(ChangeEvent e) {
-	    	       jTF_carVelocity.setText(String.valueOf(jS_carVelocity.getValue())+" km");
-			}
-		});
-       jTF_carVelocity.setEditable(false);
-       jTF_carVelocity.setText(String.valueOf(jS_carVelocity.getValue())+" km");
-       simulatorSettings.add(jL_carVelocity);
-       simulatorSettings.add(jS_carVelocity);
-       simulatorSettings.add(jTF_carVelocity);
-       
+              
        jL_autoSteerTechnique = new JLabel("Auto steer technique:");
        jCB_autoSteerTechnique = new JComboBox<String>(new DefaultComboBoxModel<>(new String[] {"Tecnique 1","Tecnique 2","Tecnique 3"}));
        simulatorSettings.add(jL_autoSteerTechnique);
@@ -211,7 +193,6 @@ public class Simulator extends JFrame{
     	   public void actionPerformed(ActionEvent actionEvent) {
     		   lanesQuantity = (byte) jS_lanesQuantity.getValue();
     		   obstaclesQuantity = (byte) jS_obstaclesQuantity.getValue();
-    		   carVelocity = (byte) jS_carVelocity.getValue();
     		   window.repaint();
     	   }
        });
@@ -300,9 +281,6 @@ public class Simulator extends JFrame{
    private JLabel jL_obstaclesQuantity;
    private JSlider jS_obstaclesQuantity;
    private JTextField jTF_obstaclesQuantity;
-   private JLabel jL_carVelocity;
-   private JSlider jS_carVelocity;
-   private JTextField jTF_carVelocity;
    private JLabel jL_autoSteerTechnique;
    private JComboBox<String> jCB_autoSteerTechnique;
    private JButton jB_apply;
