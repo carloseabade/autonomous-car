@@ -50,7 +50,7 @@ public class Simulator extends JFrame{
    private boolean animate = true;
    
    private byte lanesQuantity = 2;
-   private byte obstaclesQuantity = 4;
+   private byte obstaclesQuantity = 0;
    private byte carVelocity = 1;
    
 //   5.03682 m = 155 px
@@ -146,8 +146,8 @@ public class Simulator extends JFrame{
        jS_lanesQuantity = new JSlider();
        jTF_lanesQuantity = new JTextField();
        jS_lanesQuantity.setMaximum(4);
-       jS_lanesQuantity.setValue(2);
-       jS_lanesQuantity.setMinimum(2);
+       jS_lanesQuantity.setValue(obstaclesQuantity);
+       jS_lanesQuantity.setMinimum(0);
        jS_lanesQuantity.setMajorTickSpacing(1);
        jS_lanesQuantity.setPaintTicks(true);
        jS_lanesQuantity.addChangeListener(new ChangeListener() {			
