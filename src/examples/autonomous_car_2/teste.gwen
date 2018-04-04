@@ -1,0 +1,13 @@
+GWENDOLEN
+
+:name: car
+
+:Initial Beliefs:
+at(0,1)
+
+:Initial Goals:
+sensor_enable[perform]
+
+:Plans:
++!sensor_enable [perform] : {B at(V,C), V == 0, C == 0} <- 
+	print(oi);
