@@ -64,6 +64,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		Coordinate aux = new Coordinate((9 + (int)(Math.random() * 31)),((int) (Math.random() * 2)));		
 		
 		obstacles.add(new Coordinate(aux.getX(), aux.getY()));
+//		obstacles.add(new Coordinate(20,0));
+//		obstacles.add(new Coordinate(33,1));
+//		obstacles.add(new Coordinate(39,1));
 		
 		while (i < nObstacles) {
 			do {
@@ -193,7 +196,7 @@ private void removeObstaclePredicate(String agName) {
 			}
 			else if (act.getFunctor().equals("check_env")) {
 
-				if(car.getX()+sensor >= obstacle1.getX() && car.getX()+sensor >= obstacle2.getX() && car.getX() < obstacle1.getX() && car.getX() < obstacle2.getX() && obstacle1.getY() != obstacle2.getY()) {
+				if(car.getX()+sensor >= obstacle1.getX() && car.getX()+sensor >= obstacle2.getX() && car.getX() < obstacle1.getX()+5 && car.getX() < obstacle2.getX()+5 && obstacle1.getY() != obstacle2.getY()) {
 					Predicate obs1 = new Predicate("obs1");
 					obs1.addTerm(new NumberTermImpl(obstacle1.getX()));
 					obs1.addTerm(new NumberTermImpl(obstacle1.getY()));
