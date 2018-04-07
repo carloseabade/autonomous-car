@@ -13,6 +13,7 @@ import autonomous_car_2.Coordinate;
 
 public class AutonomousCarEnv extends DefaultEnvironment{
 	
+	private Simulator simulator = new Simulator();
 	
 	private Coordinate car = new Coordinate(0, 0); //Current coordinates of the agent/vehicle
 	private int velocity; //Agent/vehicle velocity
@@ -26,6 +27,14 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private boolean simulate; //Determines if the environment should send message to the simulator
 	private int waitTimeLocation; //Wait time to send first message
 	private int controlObstacles = 0; 
+	
+	public AutonomousCarEnv() {
+		new Thread(new Runnable() {
+		     public void run() {
+		          simulator.startAnimation();
+		     }
+		}).start();
+	}
 	
 	// Environment setup
 	@Override

@@ -57,7 +57,7 @@ public class Simulator extends JFrame{
 //   	   1 m = 30.77338479437423 px ~ 31 px
    private double pixelsPerMeter = 30.77338479437423;
    
-   private Simulator() {
+   Simulator() {
        window = new JPanel() {
            @Override
            public void paintComponent(Graphics g) {
