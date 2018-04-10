@@ -40,6 +40,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	@Override
 	public void setMAS(MAS m) {
 		
+//		while(!simulator.getAnimate()) {}
+
 		super.setMAS(m);
 			
 		this.velocity = 1;
@@ -91,21 +93,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		i = 0;
 		
 		// Simulator Setup
-		if(simulate) {
-			while (i < nObstacles) {
-		
-				Client.sendMessage( Client.convertArray2String( new String[] 
-					{"obsLocation", String.valueOf(obstacles.get(i).getX()), String.valueOf(obstacles.get(i).getY())} ) );
-				
-				try {
-					TimeUnit.MILLISECONDS.sleep(100);
-				} catch(Exception e) {
-					System.err.println(e);
-				}
-				
-				i++;
-			}
-		}
+		simulator.setObstacles(obstacles);
 		
 	}
 	
@@ -166,17 +154,7 @@ private void removeObstaclePredicate(String agName) {
 	
 	private void sendMessageSimulator() {
 		
-		if(simulate) {
-		    
-		    try {
-			TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
-		} catch(Exception e) {
-			System.err.println(e);
-		}
-			Client.sendMessage( Client.convertArray2String( new String[] 
-				{"carLocation", String.valueOf(car.getX()), String.valueOf(car.getY())} ) );
-			
-		}
+		simulator.setCarLocation(car);
 		
 	}
 
