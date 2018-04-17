@@ -13,6 +13,7 @@ import autonomous_car_2.Coordinate;
 
 public class AutonomousCarEnv extends DefaultEnvironment{
 	
+	private Simulator simulator = new Simulator();
 	
 	private Coordinate car = new Coordinate(0, 0); //Current coordinates of the agent/vehicle
 	private int velocity; //Agent/vehicle velocity
@@ -27,10 +28,20 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private int waitTimeLocation; //Wait time to send first message
 	private int controlObstacles = 0; 
 	
+	public AutonomousCarEnv() {
+		new Thread(new Runnable() {
+		     public void run() {
+		          simulator.startAnimation();
+		     }
+		}).start();
+	}
+	
 	// Environment setup
 	@Override
 	public void setMAS(MAS m) {
 		
+//		while(!simulator.getAnimate()) {}
+
 		super.setMAS(m);
 			
 		this.velocity = 1;
@@ -64,6 +75,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		Coordinate aux = new Coordinate((9 + (int)(Math.random() * 31)),((int) (Math.random() * 2)));		
 		
 		obstacles.add(new Coordinate(aux.getX(), aux.getY()));
+//		obstacles.add(new Coordinate(20,0));
+//		obstacles.add(new Coordinate(33,1));
+//		obstacles.add(new Coordinate(39,1));
 		
 		while (i < nObstacles) {
 			do {
@@ -79,21 +93,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		i = 0;
 		
 		// Simulator Setup
-		if(simulate) {
-			while (i < nObstacles) {
-		
-				Client.sendMessage( Client.convertArray2String( new String[] 
-					{"obsLocation", String.valueOf(obstacles.get(i).getX()), String.valueOf(obstacles.get(i).getY())} ) );
-				
-				try {
-					TimeUnit.MILLISECONDS.sleep(100);
-				} catch(Exception e) {
-					System.err.println(e);
-				}
-				
-				i++;
-			}
-		}
+		simulator.setObstacles(obstacles);
 		
 	}
 	
@@ -154,17 +154,7 @@ private void removeObstaclePredicate(String agName) {
 	
 	private void sendMessageSimulator() {
 		
-		if(simulate) {
-		    
-		    try {
-			TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
-		} catch(Exception e) {
-			System.err.println(e);
-		}
-			Client.sendMessage( Client.convertArray2String( new String[] 
-				{"carLocation", String.valueOf(car.getX()), String.valueOf(car.getY())} ) );
-			
-		}
+		simulator.setCarLocation(car);
 		
 	}
 
@@ -193,7 +183,7 @@ private void removeObstaclePredicate(String agName) {
 			}
 			else if (act.getFunctor().equals("check_env")) {
 
-				if(car.getX()+sensor >= obstacle1.getX() && car.getX()+sensor >= obstacle2.getX() && car.getX() < obstacle1.getX() && car.getX() < obstacle2.getX() && obstacle1.getY() != obstacle2.getY()) {
+				if(car.getX()+sensor >= obstacle1.getX() && car.getX()+sensor >= obstacle2.getX() && car.getX() < obstacle1.getX()+5 && car.getX() < obstacle2.getX()+5 && obstacle1.getY() != obstacle2.getY()) {
 					Predicate obs1 = new Predicate("obs1");
 					obs1.addTerm(new NumberTermImpl(obstacle1.getX()));
 					obs1.addTerm(new NumberTermImpl(obstacle1.getY()));
