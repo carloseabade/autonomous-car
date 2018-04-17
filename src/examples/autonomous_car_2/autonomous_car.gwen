@@ -3,60 +3,68 @@ GWENDOLEN
 :name: car
 
 :Initial Beliefs:
-at(0,0)
 
 :Initial Goals:
 
 :Plans:
 +start : {True} <- 
-	print(start),  
+	print(start),
+	gps_enable,
+	print(gps_enable),  
 	+!sensor_enable [perform];
 
 
 +!sensor_enable [perform] : {True} <- 
+	sensor_enable,
 	print(sensor_enable), 
-	+sensor_enable,
 	check_env, 
 	print(check_env), 
 	+!go_forward [perform];
 
 
-+!go_forward [perform] : {~B obs1, ~B obs2} <- 
++!go_forward [perform] : {~B obs1(X,Y), ~B obs2(C,D)} <- 
 	run, 
 	*going_forward, 
 	check_env, 
 	+!go_forward [perform];
 	
-+!go_forward [perform] : {B obs1, B obs2} <- 
++!go_forward [perform] : {B obs1(X,Y), B obs2(C,D)} <- 
+	-obs1(X,Y),
+	-obs2(C,D),
 	print(stop), 
 	stop,
 	+go_forward;
 	
-+!go_forward [perform] : {B obs1, B same_lane, B lane1} <- 
-	print(go_left), 
-	go_left,  
-	*going_forward, 
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs1, B same_lane, B lane0} <- 
-	print(go_right), 
-	go_right,  
-	*going_forward, 
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs2, B same_lane, B lane1} <- 
-	print(go_left), 
++!go_forward [perform] : {B obs1(X,Y), ~B obs2(C,D), B at(E,F), Y == F, F == 1} <- 
+	print(go_left1), 
 	go_left, 
-	*going_forward, 
+	*going_forward,
+	-obs1(X,Y),
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B obs1(X,Y), ~B obs2(C,D), B at(E,F), Y == F, F == 0} <-
+	print(go_right1), 
+	go_right,  
+	*going_forward,
+	-obs1(X,Y),
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B obs2(C,D), ~B obs1(X,Y), B at(E,F), D == F, F == 1} <- 
+	print(obs2),
+	print(go_left2), 
+	go_left, 
+	*going_forward,
+	-obs2(C,D), 
 	check_env, 
 	+!go_forward [perform];
 	
-+!go_forward [perform] : {B obs2, B same_lane, B lane0} <- 
-	print(go_right), 
++!go_forward [perform] : {B obs2(C,D), ~B obs1(X,Y), B at(E,F), D == F, F == 0} <- 
+	print(go_right2), 
 	go_right, 
 	*going_forward,
+	-obs2(C,D),
 	 check_env, 
 	+!go_forward [perform];
 	
@@ -64,3 +72,7 @@ at(0,0)
 	+go_forward;
 
 +stopped : {True} <- print(END);
+
+-obs1(X,Y) : {True} <- removeObs1;
+
+-obs2(C,D) : {True} <- removeObs2;

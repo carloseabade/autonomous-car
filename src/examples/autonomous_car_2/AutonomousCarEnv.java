@@ -1,273 +1,410 @@
 package autonomous_car_2;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-import ail.mas.DefaultEnvironmentwRandomness;
+import ail.mas.DefaultEnvironment;
 import ail.mas.MAS;
 import ail.syntax.Action;
 import ail.syntax.NumberTermImpl;
 import ail.syntax.Predicate;
 import ail.syntax.Unifier;
+import ail.syntax.VarTerm;
 import ail.util.AILexception;
-import autonomous_car.Client;
 
-public class AutonomousCarEnv extends DefaultEnvironmentwRandomness{
-	
-	
-	private Coordinate car = new Coordinate(0, 0); //Current coordinates of the agent/vehicle
-	private int velocity; //Agent/vehicle velocity
-	private int sensor; //Sensor range
-	private int nObstacles; // Total of static obstacles
-	private Coordinate obstacle1 = new Coordinate(6,0);
-	private Coordinate obstacle2 = new Coordinate(6,0);
-	private boolean simulate; // Determines if the environment should send message to the simulator
-	private int waitTimeLocation; // Wait time to send first message
+public class AutonomousCarEnv extends DefaultEnvironment{
 
-	// Environment setup
+	/* Armazena as inforçaões do carro e a sua posição*/
+	private Car car; 
+
+	/*Quantidade de faixas  e obstáculos no ambiente*/
+	private int nLanes;
+	private int nObstacles; 
+
+	/*Lista que armazena as as informações de todos os obstáculos*/
+	private ArrayList<Obstacle> obstacles;
+
+	/*Controle dos obstáculos encontrados, analizados e ultrapassados*/
+	private int foundObstacle;
+	private int analizedObstacle;
+	private int overpastObstacle;
+
+	/*Determina se o ambiente irá enviar as mensagens para o simulador*/
+	private boolean simulate; 
+
+	/*Controle para nao enviar obstaculos mais de uma vez para o simulador*/
+	private boolean notSend;
+
+	/*Tempo de espera para enviar a primeira mensagem*/
+	private int waitTimeLocation; 
+
+	//Inicia informações do ambiente
 	@Override
 	public void setMAS(MAS m) {
 		super.setMAS(m);
-		
-		this.velocity = 1;
-		
-		this.sensor = 6;
-		
-		this.nObstacles = 2;
-		
-		this.simulate = true;
-		
-		this.waitTimeLocation = 300; 	
 
-		initObstacle(); // Obstacles (Coordinates)
+		this.simulate = true;
+		this.notSend = true;
+		this.waitTimeLocation = 300;
+
+		/*Inicia o carro na ordem: length, width, velocity, ultrasonicSensor, wideSensor, x, y*/
+		this.car = new Car(5, 2, 0, 4, 30, 0, 0);
+
+		this.nLanes = 2;
+
+		this.nObstacles = 6;
+		this.obstacles = new ArrayList<Obstacle>(nObstacles);
+		this.foundObstacle = 0;
+		this.analizedObstacle = 0;
+		this.overpastObstacle = 0;
 		
+		initObstacle();
+		
+		Predicate carSize = new Predicate("carSize");
+		carSize.addTerm(new NumberTermImpl(car.getLength()));
+		carSize.addTerm(new NumberTermImpl(car.getWidth()));
+		addPercept("car", carSize);
+
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
-		
-		Predicate lane0 = new Predicate("lane0");
-		addPercept("car", lane0);
-		
 
 	}
-	
-	/*
-	 * Set 'nObstacles' in the environment randomly.
-	 */
-	private void initObstacle() {
-		
-		int x;
-		int y;
-		
-		if (nObstacles > 0) {
-			do {
-				x = obstacle1.getX() + (int)(Math.random() * 31);
-				y = (int) (Math.random() * 2);
-			}while (x == 0 || x < obstacle1.getX() || (x == obstacle1.getX() && y == obstacle1.getY() && x == obstacle2.getX() && y == obstacle2.getY()));
 
-			obstacle1.setX(x);
-			obstacle1.setY(y);
-
-		}
-		
-		nObstacles--;
-
-		if (nObstacles > 0) {
-			do {					
-				x = obstacle2.getX() + (int)(Math.random() * 31);
-				y = (int) (Math.random() * 2);
-			}while (x == 0 || x < obstacle2.getX() || (x == obstacle2.getX() && y == obstacle2.getY() && x == obstacle1.getX() && y == obstacle1.getY()));
-
-				obstacle2.setX(x);
-				obstacle2.setY(y);
-
-		}
-		
-		// Simulator Setup
-		if(simulate) {
-			Client.sendMessage( Client.convertArray2String( new String[] 
-					{"obsLocation", String.valueOf(obstacle1.getX()), String.valueOf(obstacle1.getY())} ) );
-			Client.sendMessage( Client.convertArray2String( new String[] 
-					{"obsLocation", String.valueOf(obstacle2.getX()), String.valueOf(obstacle2.getY())} ) );
-			    
-			try {
-				TimeUnit.MILLISECONDS.sleep(100);
-			} catch(Exception e) {
-			    System.err.println(e);
-			}
-		}
-		
-		System.out.println("Obstacle1 X: " + obstacle1.getX());
-		System.out.println("Obstacle1 Y: " + obstacle1.getY());
-		System.out.println("Obstacle2 X: " + obstacle2.getX());
-		System.out.println("Obstacle2 Y: " + obstacle2.getY());
-		
-	}
-
-	
-	// Identifies agents' actions
 	public Unifier executeAction(String agName, Action act) throws AILexception {
-		
 		Unifier u = new Unifier();
-		
-		if(act.getFunctor().equals("run")) {
+
+		if(act.getFunctor().equals("sensor_enable")) {
+
+			Predicate wideSensor = new Predicate("wideSensor");
+			wideSensor.addTerm(new NumberTermImpl(car.getWideSensor()));
+			addPercept("car", wideSensor);
 			
-			Predicate old_position = new Predicate("at");
-			old_position.addTerm(new NumberTermImpl(car.getX()));
-			old_position.addTerm(new NumberTermImpl(car.getY()));
+			System.out.println("WideSensor range: " + (car.getWideSensor()));
+
+			Predicate ultrasonicSensor = new Predicate("ultrasonicSensor");
+			ultrasonicSensor.addTerm(new NumberTermImpl(car.getUltrasonicSensor()));
+			addPercept("car", ultrasonicSensor);
 			
-			car.setX(car.getX() + velocity);
-			
+			System.out.println("UltrasonicSensor range: " + (car.getUltrasonicSensor()));
+
+		} else if(act.getFunctor().equals("gps_enable")) {
+
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car.getX()));
 			at.addTerm(new NumberTermImpl(car.getY()));
+			addPercept(agName, at);
 			
+			Predicate velocity = new Predicate("velocity");
+			velocity.addTerm(new NumberTermImpl(car.getVelocity()));
+			addPercept(agName, velocity);
+			
+			car.setMaxVelocity(1);
+			
+			Predicate maxVelocity = new Predicate("maxVelocity");
+			maxVelocity.addTerm(new NumberTermImpl(car.getMaxVelocity()));
+			addPercept(agName, maxVelocity);
+
+			switch (nLanes) {
+			case 1:
+				addLane0(agName);
+				break;
+			case 2: 
+				addLane0(agName);
+				addLane1(agName);
+				break;
+			case 3:
+				addLane0(agName);
+				addLane1(agName);
+				addLane2(agName);
+				break;
+			case 4:
+				addLane0(agName);
+				addLane1(agName);
+				addLane2(agName);
+				addLane3(agName);
+				break;
+			default:
+				break;
+			}
+
+		} else if(act.getFunctor().equals("run")) {
+
+			removeOldCarPosition(agName);
+
+			car.setX(car.getX() + car.getVelocity());
+
 			System.err.println("MOVING " + car.getX() + " " + car.getY());
-			
-			removePercept(agName, old_position); //remove old position
-			addPercept(agName, at); //inform new position to the agent
 
-			Predicate going_forward = new Predicate("going_forward");
-			addPercept(agName, going_forward);
+			addNewCarPosition(agName);
 
-			
+			sendMessageSimulator();
+
 		}
 		else if (act.getFunctor().equals("check_env")) {
 
-			if(car.getX()+sensor == obstacle1.getX() && car.getX()+sensor == obstacle2.getX()) {
-				Predicate obs1 = new Predicate("obs1");
-				
-				addPercept(agName, obs1);
-				
-				Predicate obs2 = new Predicate("obs2");
-				
-				addPercept(agName, obs2);
-				
-			} else if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
-				Predicate obs2 = new Predicate("obs2");
-				
-				Predicate same_lane = new Predicate("same_lane");
-				
-				addPercept(agName, same_lane);
-				addPercept(agName, obs2);
-				
-			} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()){
-				Predicate obs1 = new Predicate("obs1");
-				
-				Predicate same_lane = new Predicate("same_lane");
-				
-				addPercept(agName, same_lane);
-				addPercept(agName, obs1);	
-			}
+			checkEnvironment(agName);
 
 		}
 		else if(act.getFunctor().equals("go_right")) {
-			
-			Predicate old_position = new Predicate("at");
-			old_position.addTerm(new NumberTermImpl(car.getX()));
-			old_position.addTerm(new NumberTermImpl(car.getY()));
-			
-			if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
-				Predicate obs2 = new Predicate("obs2");
-				
-				Predicate same_lane = new Predicate("same_lane");
-				
-				removePercept(agName, same_lane);
-				removePercept(agName, obs2);
-			} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {
-				Predicate obs1 = new Predicate("obs1");
-				
-				Predicate same_lane = new Predicate("same_lane");
-				
-				removePercept(agName, same_lane);
-				removePercept(agName, obs1);	
-			}
-			
-			car.setX(car.getX() + velocity);
+
+			removeOldCarPosition(agName);
+
+			car.setX(car.getX() + car.getVelocity());
 			car.setY(car.getY() + 1); 
-			
-			Predicate at = new Predicate("at");
-			at.addTerm(new NumberTermImpl(car.getX()));
-			at.addTerm(new NumberTermImpl(car.getY()));
-			
-			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
-			
-			Predicate lane1 = new Predicate("lane1");
-			Predicate lane0 = new Predicate("lane0");
-			
-			addPercept(agName, lane1);
-			removePercept(agName, lane0);
-			removePercept(agName, old_position); //remove old position
-			addPercept(agName, at); //inform new position to the agent
 
-			
-			Predicate going_forward = new Predicate("going_forward");
-			addPercept(agName, going_forward);
-		}
+			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
+
+			addNewCarPosition(agName);			    
+
+			sendMessageSimulator();
+
+		} 
 		else if(act.getFunctor().equals("go_left")) {
-			
-			Predicate old_position = new Predicate("at");
-			old_position.addTerm(new NumberTermImpl(car.getX()));
-			old_position.addTerm(new NumberTermImpl(car.getY()));
-			
-			if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
-				Predicate obs2 = new Predicate("obs2");
-				
-				Predicate same_lane = new Predicate("same_lane");
-				
-				removePercept(agName, same_lane);
-				removePercept(agName, obs2);
-			} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {
-				Predicate obs1 = new Predicate("obs1");
-				
-				Predicate same_lane = new Predicate("same_lane");
-				
-				removePercept(agName, same_lane);
-				removePercept(agName, obs1);				
-			}
 
-			car.setX(car.getX() + velocity);
+			removeOldCarPosition(agName);
+
+			car.setX(car.getX() + car.getVelocity());
 			car.setY(car.getY() - 1); 
-			
-			Predicate at = new Predicate("at");
-			at.addTerm(new NumberTermImpl(car.getX()));
-			at.addTerm(new NumberTermImpl(car.getY()));
-			
+
 			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
+
+			addNewCarPosition(agName);
+
+			sendMessageSimulator();
+
+		} else if(act.getFunctor().equals("removeObs1")) {
+			obstacles.get(overpastObstacle).setOverPast(true);
 			
-			Predicate lane1 = new Predicate("lane1");
-			Predicate lane0 = new Predicate("lane0");
+			removeObs1(agName, overpastObstacle);
 			
-			addPercept(agName, lane0);
-			removePercept(agName, lane1);
+			overpastObstacle += 1;
+
+		} else if(act.getFunctor().equals("removeObs2")) {
+			obstacles.get(overpastObstacle).setOverPast(true);
 			
-			removePercept(agName, old_position); //remove old position
-			addPercept(agName, at); //inform new position to the agent
+			removeObs2(agName, overpastObstacle);
 			
-			Predicate going_forward = new Predicate("going_forward");
-			addPercept(agName, going_forward);
-		}
-		else if(act.getFunctor().equals("stop")) {
+			overpastObstacle += 1;
+
+		} else if(act.getFunctor().equals("accelerate")) {
+			speedUp(agName);
+			
+		} else if(act.getFunctor().equals("stop")) {
 			Predicate stopped = new Predicate("stopped");
 			addPercept(agName, stopped);
-			
+
 			Predicate start = new Predicate("start");
 			removePercept(agName, start);
+
+			sendMessageSimulator();
+
 		}
-		
+
 		super.executeAction(agName, act);
-		
-		if(simulate) {
-		    
-		    try {
-			TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
-		} catch(Exception e) {
-			System.err.println(e);
-		}
-			Client.sendMessage( Client.convertArray2String( new String[] 
-				{"carLocation", String.valueOf(car.getX()), String.valueOf(car.getY())} ) );
-			
-		}
-		
+
 		return u;
+
+	}
+	
+	/*Popula o Array com os obstáculos e define as coordenadas aleatoriamente*/
+	private void initObstacle() {
+		if (notSend) {
+			int i = 1;
+
+			if(nLanes > 1) {
+				Obstacle aux = new Obstacle(5, 2, 9 + (int)(Math.random() * 31), (int) (Math.random() * 2));
+
+				obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
+
+				while (i < nObstacles) {
+					do {
+						aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 31));
+						aux.setY((int) (Math.random() * 2));
+					} while (aux.getX() == obstacles.get(i-1).front() && obstacles.get(i-1).getY() == aux.getY());
+
+					obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
+
+					i++;
+				}
+			} else {
+				Obstacle aux = new Obstacle(5, 2, 9 + (int)(Math.random() * 31), car.getY());
+
+				obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
+
+				while (i < nObstacles) {
+					do {
+						aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 31));
+						aux.setY(car.getY());
+					} while (aux.getX() == obstacles.get(i-1).front());
+
+					obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
+
+					i++;
+				}
+			}
+
+			System.out.println("Environment obstacles:");
+			i = 0;
+
+			if(simulate) {
+				while (i < nObstacles) {
+					Client.sendMessage( Client.convertArray2String( new String[] 
+							{"obsLocation", String.valueOf(obstacles.get(i).getX()), String.valueOf(obstacles.get(i).getY())} ) );
+					System.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
+					try {
+						TimeUnit.MILLISECONDS.sleep(100);
+					} catch(Exception e) {
+						System.err.println(e);
+					}
+
+					i++;
+				}
+			}
+			notSend = false;
+		}
+	}
+
+	/*Remove a crença da posição atual do carro*/
+	private void removeOldCarPosition(String agName) {
+		Predicate old_position = new Predicate("at");
+		old_position.addTerm(new VarTerm("X"));
+		old_position.addTerm(new VarTerm("Y"));
+
+		removeUnifiesPercept(agName, old_position); //remove old position
+	}
+	
+	/*Adiciona a crença da nova posição do carro*/
+	private void addNewCarPosition(String agName) {
+		Predicate at = new Predicate("at");
+		at.addTerm(new NumberTermImpl(car.getX()));
+		at.addTerm(new NumberTermImpl(car.getY()));
+
+		addPercept(agName, at); //inform new position to the agent
+
+		Predicate going_forward = new Predicate("going_forward");
+
+		addPercept(agName, going_forward);
+	}
+	
+	private void speedUp(String agName) {
+		car.setVelocity(car.getVelocity()+1);
+
+		Predicate going_forward = new Predicate("going_forward");
+		addPercept(agName, going_forward);
+	}
+
+	/*Sensores analizam o ambiente*/
+	private void checkEnvironment(String agName) {
 		
+		/*Encontra os obstáculos que estão dentro do alcance do WideSensor*/
+		while(foundObstacle < obstacles.size() && !obstacles.get(foundObstacle).getFound() && obstacles.get(foundObstacle).front() <= car.front()+car.getWideSensor()) 
+		{
+			obstacles.get(foundObstacle).setFound(true);
+			System.out.println("FoundObstacle: (" + obstacles.get(foundObstacle).getX() + "," + obstacles.get(foundObstacle).getY() + ")");
+			foundObstacle += 1;
+		}
+		
+		/*Envia para o agente os obstáculos a serem analizados*/
+		if (analizedObstacle == 0) {
+			if(!obstacles.isEmpty() && obstacles.get(analizedObstacle).getFound()) {
+				addObs1(agName, analizedObstacle);
+			}
+			
+			if(obstacles.size() > analizedObstacle+1 && obstacles.get(analizedObstacle+1).getFound()) {
+				addObs2(agName, analizedObstacle+1);
+			}
+			analizedObstacle += 1;			
+		} else if(obstacles.size() > analizedObstacle && obstacles.get(analizedObstacle).getFound() && !obstacles.get(analizedObstacle).getAnalized()) {
+			addObs2(agName, analizedObstacle);
+			
+		} else if (obstacles.size() > analizedObstacle && obstacles.get(analizedObstacle-1).getOverPast()) {
+			addObs1(agName, analizedObstacle);
+			
+			removeObs2(agName, analizedObstacle-1);
+			
+			if(obstacles.size() > analizedObstacle+1 && obstacles.get(analizedObstacle+1).getFound()) {
+				addObs2(agName, analizedObstacle+1);
+			}
+			analizedObstacle += 1;
+		}
+	}
+	
+	private void addObs1(String agName, int i) {
+		Predicate obs1 = new Predicate("obs1");
+		obs1.addTerm(new NumberTermImpl(obstacles.get(i).getX()));
+		obs1.addTerm(new NumberTermImpl(obstacles.get(i).getY()));
+		obs1.addTerm(new Predicate("not_overPast"));
+		addPercept(agName, obs1);
+		
+		obstacles.get(i).setAnalized(true);
+		
+		System.out.println("Obstaculo1 (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
+	}
+	
+	private void removeObs1(String agName, int i) {
+		Predicate obs1 = new Predicate("obs1");
+		obs1.addTerm(new NumberTermImpl(obstacles.get(i).getX()));
+		obs1.addTerm(new NumberTermImpl(obstacles.get(i).getY()));
+		obs1.addTerm(new Predicate("not_overPast"));
+		removePercept(agName, obs1);	
+		
+	}
+	
+	private void addObs2(String agName, int i) {
+		Predicate obs2 = new Predicate("obs2");
+		obs2.addTerm(new NumberTermImpl(obstacles.get(i).getX()));
+		obs2.addTerm(new NumberTermImpl(obstacles.get(i).getY()));
+		obs2.addTerm(new Predicate("not_overPast"));
+		addPercept(agName, obs2);
+		
+		obstacles.get(i).setAnalized(true);
+		
+		System.out.println("Obstaculo2 (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
+		
+	}
+	
+	private void removeObs2(String agName, int i) {
+		Predicate obs2 = new Predicate("obs2");
+		obs2.addTerm(new NumberTermImpl(obstacles.get(i).getX()));
+		obs2.addTerm(new NumberTermImpl(obstacles.get(i).getY()));
+		obs2.addTerm(new Predicate("not_overPast"));
+		removePercept(agName, obs2);		
+	}
+
+	private void addLane0(String agName) {
+		Predicate lane0 = new Predicate("lane0");
+		lane0.addTerm(new Predicate("same_direction"));
+		addPercept(agName, lane0);
+	}
+
+	private void addLane1(String agName) {
+		Predicate lane1 = new Predicate("lane1");
+		lane1.addTerm(new Predicate("same_direction"));
+		addPercept(agName, lane1);
+	}
+
+	private void addLane2(String agName) {
+		Predicate lane2 = new Predicate("lane2");
+		lane2.addTerm(new Predicate("reverse_direction"));
+		addPercept(agName, lane2);
+	}
+
+	private void addLane3(String agName) {
+		Predicate lane3 = new Predicate("lane3");
+		lane3.addTerm(new Predicate("reverse_direction"));
+		addPercept(agName, lane3);
+	}
+
+	/*Atualiza as informações do carro no simulador*/
+	private void sendMessageSimulator() {
+		if(simulate) {
+			try {
+				TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
+			} catch(Exception e) {
+				System.err.println(e);
+			}
+			Client.sendMessage( Client.convertArray2String( new String[] 
+					{"carLocation", String.valueOf(car.getX()), String.valueOf(car.getY())} ) );
+		}
 	}
 
 }
