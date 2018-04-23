@@ -9,70 +9,77 @@ GWENDOLEN
 :Plans:
 +start : {True} <- 
 	print(start),
+	print(gps_enable),
 	gps_enable,
-	print(gps_enable),  
-	+!sensor_enable [perform];
-
-
-+!sensor_enable [perform] : {True} <- 
-	sensor_enable,
 	print(sensor_enable), 
-	check_env, 
-	print(check_env), 
-	+!go_forward [perform];
-
-
-+!go_forward [perform] : {~B obs1(X,Y), ~B obs2(C,D)} <- 
-	run, 
-	*going_forward, 
-	check_env, 
+	sensor_enable,
+	print(check_env),
+	check_env,  
 	+!go_forward [perform];
 	
-+!go_forward [perform] : {B obs1(X,Y), B obs2(C,D)} <- 
-	-obs1(X,Y),
-	-obs2(C,D),
+/************************************************************* 2 LANES NA MESMA DIREÇÃO *************************************************************/
+
+        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/         
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,  
+						 ~B obs1Close, 
+						 ~B obs2Close,
+						  B velocity(V), 
+						  B maxVelocity(MV),
+						  V < MV} <-						 
+	print(accelerate),
+	accelerate, 
+	*going_forward,
+	check_env,
+	+!go_forward [perform]; 
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1), 
+						  0 < D0,
+						  0 < D1,   
+						 ~B obs1Close, 
+						 ~B obs2Close,
+						  B velocity(V), 
+						  B maxVelocity(MV),
+						  V == MV} <-						  
+	run, 
+	*going_forward, 
+	-run,
+	check_env, 
+	+!go_forward [perform];
+
+        /********************************************************* COM 1 OBSTÁCULO **********************************************************/         
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  B obs1Close,
+						 ~B stop,
+						 ~B change_lane,
+						 ~B obs2(X2, Y2),
+						  Y == Y1} <-						  
+	around,
+	+!go_forward [perform];
+
+/*******************************************************************************************************************************************/
+
++decelerate : {True} <-
+	print(decelerate),
+	decelerate, 
+	*going_forward,
+	-decelerate, 
+	check_env,
+	+!go_forward [perform];
+
++stop : {True} <-				 
 	print(stop), 
 	stop,
 	+go_forward;
-	
-+!go_forward [perform] : {B obs1(X,Y), ~B obs2(C,D), B at(E,F), Y == F, F == 1} <- 
-	print(go_left1), 
-	go_left, 
-	*going_forward,
-	-obs1(X,Y),
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs1(X,Y), ~B obs2(C,D), B at(E,F), Y == F, F == 0} <-
-	print(go_right1), 
-	go_right,  
-	*going_forward,
-	-obs1(X,Y),
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs2(C,D), ~B obs1(X,Y), B at(E,F), D == F, F == 1} <- 
-	print(obs2),
-	print(go_left2), 
-	go_left, 
-	*going_forward,
-	-obs2(C,D), 
-	check_env, 
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs2(C,D), ~B obs1(X,Y), B at(E,F), D == F, F == 0} <- 
-	print(go_right2), 
-	go_right, 
-	*going_forward,
-	-obs2(C,D),
-	 check_env, 
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B stopped} <- 
-	+go_forward;
 
 +stopped : {True} <- print(END);
-
--obs1(X,Y) : {True} <- removeObs1;
-
--obs2(C,D) : {True} <- removeObs2;

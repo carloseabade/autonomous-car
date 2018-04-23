@@ -9,7 +9,6 @@ import ail.syntax.NumberTermImpl;
 import ail.syntax.Predicate;
 import ail.syntax.Unifier;
 import ail.util.AILexception;
-import autonomous_car_2.Coordinate;
 
 public class AutonomousCarEnv extends DefaultEnvironment{
 	

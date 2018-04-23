@@ -2,11 +2,14 @@ package autonomous_car_2;
 
 public class Car extends Coordinate{
 
-	/*Velocidade atual do carro*/
+	/*Velocidade atual do carroem m/s*/
 	private int velocity;
 	
-	/*Velocidade máxima do carro*/
+	/*Velocidade máxima do carro em m/s*/
 	private int maxVelocity;
+	
+	/*Aceleração constante do carro*/
+	private int acceleration;
 	
 	/*Sensor utilizado para detectar carros próximos. 
 	  Distancia maxima: 8m. Proporcional: 4*/
@@ -60,6 +63,14 @@ public class Car extends Coordinate{
 
 	public void setMaxVelocity(int maxVelocity) {
 		this.maxVelocity = maxVelocity;
+	}
+
+	public int getAcceleration() {
+		return acceleration;
+	}
+
+	public void setAcceleration(int acceleration) {
+		this.acceleration = acceleration;
 	}
 	
 	

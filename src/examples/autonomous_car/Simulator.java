@@ -21,8 +21,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import autonomous_car_2.Coordinate;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
