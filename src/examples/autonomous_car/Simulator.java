@@ -48,6 +48,7 @@ public class Simulator extends JFrame{
 
    private int fps = 1000 / 48;
    private boolean animate = true;
+   private byte zoom = 2;
    
    private byte lanesQuantity = 2;
    private byte obstaclesQuantity = 4;
@@ -65,48 +66,21 @@ public class Simulator extends JFrame{
                g.fillRect(0, 0, width, height);
 
                g.setColor(Color.decode("#dcdcdc"));
-               g.setColor(Color.decode("#dcdcdc"));
 
-               // Draw middle line
-               for(int i = 0; i < width+car.getX()*pixelsPerMeter*carVelocity; i += 110) {
-                   g.fillRect((int) (i-car.getX()*pixelsPerMeter*carVelocity), height/2, 70, 2);
+               //Draw lane lines
+               g.fillRect(0, 0, width, 1*zoom);
+
+               for(int i = 0; i < width+car.getX()*zoom; i += 36*zoom) {
+                   g.fillRect(i-car.getX()*zoom, 36*zoom, 23*zoom, 1*zoom);
                }
                
-               if(lanesQuantity > 2) {
-            	   //faz a terceira pista
-                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.8*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.8*pixelsPerMeter)), width, 2);
+               g.fillRect(0, 74*zoom, width, 1*zoom);
+               
+               for(int i = 0; i < width+car.getX()*zoom; i += 36*zoom) {
+                   g.fillRect(i-car.getX()*zoom, 110*zoom, 23*zoom, 1*zoom);
                }
-               if(lanesQuantity > 3) {
-            	   //faz a quarta pista
-                   for(int i = 0; i < width+car.getX()*pixelsPerMeter*carVelocity; i += 110) {
-                       g.fillRect((int) (i-car.getX()*pixelsPerMeter*carVelocity), (int) (height/2-(3.8*2*pixelsPerMeter)), 70, 2);
-                   }
-               }
-
-               switch(lanesQuantity) {
-               case 2:
-                   // Draw left line
-                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.6*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
-                   break;
-               case 3:
-                   // Draw left line
-                   g.fillRect(0, (int) (height/2-(3.8*2*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.8*2*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
-                   break;
-               case 4:
-                   // Draw left line
-                   g.fillRect(0, (int) (height/2-(3.8*3*pixelsPerMeter)), width, 2);
-                   g.fillRect(0, (int) (height/2-(3.8*3*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
-                   break;
-               }
-
-               // Draw right line
-               g.fillRect(0, (int) (height/2+(3.6*pixelsPerMeter)), width, 2);
-               g.fillRect(0, (int) (height/2+(3.6*pixelsPerMeter+0.5*pixelsPerMeter)), width, 2);
+               
+               g.fillRect(0, 146*zoom, width, 1*zoom);
 
                // Draw car
                BufferedImage bi_car = null;
@@ -115,7 +89,7 @@ public class Simulator extends JFrame{
                } catch (IOException e) {
                    e.printStackTrace();
                }
-               g.drawImage(bi_car, 1, (int) (height/2-((0.7+2.2-((1.4+2.2)*car.getY()))*pixelsPerMeter)), 155, 70, null);
+               g.drawImage(bi_car, 0, (car.getY())*zoom, 50*zoom, 23*zoom, null);
 
                // Draw sensor
                BufferedImage bi_sensor = null;
@@ -124,7 +98,7 @@ public class Simulator extends JFrame{
                } catch (IOException e) {
                    e.printStackTrace();
                }
-               g.drawImage(bi_sensor, (int) (1-(4.0*pixelsPerMeter)), (int) (height/2-((0.7+2.2-((1.4+2.2)*car.getY()))*pixelsPerMeter)-(4.0*pixelsPerMeter)), 403, 318, null);
+               g.drawImage(bi_sensor, -40*zoom, (car.getY()-40)*zoom, 130*zoom, 103*zoom, null);
 
                // Draw obstacles
                BufferedImage bi_stone = null;
@@ -134,7 +108,7 @@ public class Simulator extends JFrame{
                    e.printStackTrace();
                }
                for(Coordinate c : obstacles) {
-                   g.drawImage(bi_stone, (int) ((c.getX()-car.getX())*pixelsPerMeter), (int) (height/2-((0.7+2.2-((1.4+2.2)*c.getY()))*pixelsPerMeter)), 155, 70, null);
+                   g.drawImage(bi_car, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
                }
            }
        };
@@ -147,7 +121,7 @@ public class Simulator extends JFrame{
        jTF_lanesQuantity = new JTextField();
        jS_lanesQuantity.setMaximum(4);
        jS_lanesQuantity.setValue(lanesQuantity);
-       jS_lanesQuantity.setMinimum(2);
+       jS_lanesQuantity.setMinimum(1);
        jS_lanesQuantity.setMajorTickSpacing(1);
        jS_lanesQuantity.setPaintTicks(true);
        jS_lanesQuantity.addChangeListener(new ChangeListener() {			
@@ -182,6 +156,28 @@ public class Simulator extends JFrame{
        simulatorSettings.add(jS_obstaclesQuantity);
        simulatorSettings.add(jTF_obstaclesQuantity);
               
+       jL_zoom = new JLabel("Zoom:");
+       jS_zoom = new JSlider();
+       jTF_zoom = new JTextField();
+       jS_zoom.setMaximum(10);
+       jS_zoom.setValue(zoom);
+       jS_zoom.setMinimum(1);
+       jS_zoom.setMajorTickSpacing(1);
+       jS_zoom.setPaintTicks(true);
+       jS_zoom.addChangeListener(new ChangeListener() {			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+	    	       jTF_zoom.setText(String.valueOf(jS_zoom.getValue())+" proportion");
+	    		   zoom = (byte) jS_zoom.getValue();
+	    		   window.repaint();
+			}
+		});
+       jTF_zoom.setEditable(false);
+       jTF_zoom.setText(String.valueOf(jS_zoom.getValue())+" proportion");
+       simulatorSettings.add(jL_zoom);
+       simulatorSettings.add(jS_zoom);
+       simulatorSettings.add(jTF_zoom);
+
        jL_autoSteerTechnique = new JLabel("Auto steer technique:");
        jCB_autoSteerTechnique = new JComboBox<String>(new DefaultComboBoxModel<>(new String[] {"Tecnique 1","Tecnique 2","Tecnique 3"}));
        simulatorSettings.add(jL_autoSteerTechnique);
@@ -273,6 +269,10 @@ public class Simulator extends JFrame{
        Simulator sim = new Simulator();
        sim.startAnimation();
     }
+   
+   public byte getObstaclesQuantity() {
+	   return obstaclesQuantity;
+   }
        
    private JPanel simulatorSettings;
    private JLabel jL_lanesQuantity;
@@ -281,6 +281,9 @@ public class Simulator extends JFrame{
    private JLabel jL_obstaclesQuantity;
    private JSlider jS_obstaclesQuantity;
    private JTextField jTF_obstaclesQuantity;
+   private JLabel jL_zoom;
+   private JSlider jS_zoom;
+   private JTextField jTF_zoom;
    private JLabel jL_autoSteerTechnique;
    private JComboBox<String> jCB_autoSteerTechnique;
    private JButton jB_apply;
