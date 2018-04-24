@@ -16,10 +16,9 @@ public class Client {
 		return stringConverted;
 	}
 	
-	/* 
-	 * Realiza a comunica√ß√£o com o servidor utilizando o protocolo UDP.
-	 * Recebe String message como par√¢metro, transforma seu valor em array de bytes e envia para o servidor/simulador.
-	 *  */
+	/* Realiza a comunicaÁ„o com o servidor utilizando o protocolo UDP.
+	   Recebe String message como par‚metro, transforma seu valor em 
+	   array de bytes e envia para o servidor/simulador.*/
 	public static void sendMessage (String message) {
 		try {
     		

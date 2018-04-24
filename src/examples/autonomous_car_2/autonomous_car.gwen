@@ -3,64 +3,188 @@ GWENDOLEN
 :name: car
 
 :Initial Beliefs:
-at(0,0)
 
 :Initial Goals:
 
 :Plans:
 +start : {True} <- 
-	print(start),  
-	+!sensor_enable [perform];
-
-
-+!sensor_enable [perform] : {True} <- 
+	print(start),
+	print(gps_enable),
+	gps_enable,
 	print(sensor_enable), 
-	+sensor_enable,
-	check_env, 
-	print(check_env), 
+	sensor_enable,
+	print(check_env),
+	check_env,  
+	+!go_forward [perform];
+	
+/************************************************************* 2 LANES NA MESMA DIREÇÃO *************************************************************/
+
+        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/         
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,  
+						 ~B obs1Close, 
+						 ~B obs2Close,
+						 ~B stop,
+						 ~B change_lane,
+						  B velocity(V), 
+						  B maxVelocity(MV),
+						  V < MV} <-						 
+	+accelerate;
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1), 
+						  0 < D0,
+						  0 < D1,   
+						 ~B obs1Close, 
+						 ~B obs2Close,
+						 ~B stop,
+						 ~B change_lane,
+						  B velocity(V), 
+						  B maxVelocity(MV),
+						  V == MV} <-						  
+	+run;
+
+        /**************************************************** COM 1 OBSTÁCULO EM OUTRA LANE *****************************************************/         
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  Y < Y1} <-						  
+	removeObs1,
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  Y1 < Y} <-						  
+	removeObs1,
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  Y < Y2} <-						  
+	removeObs2,
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  Y2 < Y} <-						  
+	removeObs2,
+	check_env,
+	+!go_forward [perform];
+	
+        /**************************************************** COM 1 OBSTÁCULO NA MESMA LANE *****************************************************/
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  B obs1Close,
+						 ~B change_lane,
+						 ~B stop,
+						 ~B obs2(X2, Y2),
+						 ~B obs2Close,
+						  Y == Y1} <-						  
+	around,
 	+!go_forward [perform];
 
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  B obs1Close,
+						  B change_lane,
+						  B in_lane0,
+						 ~B obs2(X2, Y2),
+						 ~B obs2Close,
+						  Y == Y1} <-						  
+	go_right,
+	removeObs1,
+	+!go_forward [perform];
 
-+!go_forward [perform] : {~B obs1, ~B obs2} <- 
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  B obs2Close,
+						 ~B change_lane,
+						 ~B stop,
+						 ~B obs1(X1, Y1),
+						 ~B obs1Close,
+						  Y == Y2} <-						  
+	around,
+	+!go_forward [perform];
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  B obs2Close,
+						  B change_lane,
+						  B in_lane0,
+						 ~B obs1(X1, Y1),
+						 ~B obs1Close,
+						  Y == Y2} <-						  
+	go_right,
+	removeObs2,
+	+!go_forward [perform];
+
+/*******************************************************************************************************************************************/
+
++accelerate : {True} <-
+	print(accelerate),
+	accelerate, 
+	*going_forward,
+	-accelerate,
+	check_env,
+	+!go_forward [perform]; 
+
++decelerate : {True} <-
+	print(decelerate),
+	decelerate, 
+	*going_forward,
+	-decelerate, 
+	check_env,
+	+!go_forward [perform];
+
++run : {True} <-
 	run, 
 	*going_forward, 
+	-run,
 	check_env, 
 	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs1, B obs2} <- 
+
++stop : {True} <-				 
 	print(stop), 
 	stop,
-	+go_forward;
-	
-+!go_forward [perform] : {B obs1, B same_lane, B lane1} <- 
-	print(go_left), 
-	go_left,  
-	*going_forward, 
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs1, B same_lane, B lane0} <- 
-	print(go_right), 
-	go_right,  
-	*going_forward, 
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs2, B same_lane, B lane1} <- 
-	print(go_left), 
-	go_left, 
-	*going_forward, 
-	check_env, 
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B obs2, B same_lane, B lane0} <- 
-	print(go_right), 
-	go_right, 
-	*going_forward,
-	 check_env, 
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B stopped} <- 
 	+go_forward;
 
 +stopped : {True} <- print(END);
