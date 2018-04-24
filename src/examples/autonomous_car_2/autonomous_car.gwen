@@ -27,14 +27,12 @@ GWENDOLEN
 						  0 < D1,  
 						 ~B obs1Close, 
 						 ~B obs2Close,
+						 ~B stop,
+						 ~B change_lane,
 						  B velocity(V), 
 						  B maxVelocity(MV),
 						  V < MV} <-						 
-	print(accelerate),
-	accelerate, 
-	*going_forward,
-	check_env,
-	+!go_forward [perform]; 
+	+accelerate;
 
 +!go_forward [perform] : {B lane0(D0), 
 						  B lane1(D1), 
@@ -42,14 +40,12 @@ GWENDOLEN
 						  0 < D1,   
 						 ~B obs1Close, 
 						 ~B obs2Close,
+						 ~B stop,
+						 ~B change_lane,
 						  B velocity(V), 
 						  B maxVelocity(MV),
 						  V == MV} <-						  
-	run, 
-	*going_forward, 
-	-run,
-	check_env, 
-	+!go_forward [perform];
+	+run;
 
         /********************************************************* COM 1 OBSTÁCULO **********************************************************/         
 
@@ -60,14 +56,41 @@ GWENDOLEN
 						  B at(X, Y),  
 						  B obs1(X1, Y1),
 						  B obs1Close,
-						 ~B stop,
 						 ~B change_lane,
+						 ~B stop,
 						 ~B obs2(X2, Y2),
+						 ~B obs2Close,
 						  Y == Y1} <-						  
 	around,
 	+!go_forward [perform];
 
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  B obs1Close,
+						  B change_lane,
+						  B in_lane0,
+						 ~B obs2(X2, Y2),
+						 ~B obs2Close,
+						  Y == Y1} <-						  
+	go_right,
+	removeObs1,
+	-change_lane,
+	-obs1Close,
+	+!go_forward [perform];
+
 /*******************************************************************************************************************************************/
+
++accelerate : {True} <-
+	print(accelerate),
+	accelerate, 
+	*going_forward,
+	-accelerate,
+	check_env,
+	+!go_forward [perform]; 
 
 +decelerate : {True} <-
 	print(decelerate),
@@ -75,6 +98,13 @@ GWENDOLEN
 	*going_forward,
 	-decelerate, 
 	check_env,
+	+!go_forward [perform];
+
++run : {True} <-
+	run, 
+	*going_forward, 
+	-run,
+	check_env, 
 	+!go_forward [perform];
 
 +stop : {True} <-				 
