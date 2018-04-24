@@ -15,11 +15,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	
 	private Simulator simulator = new Simulator();
 	
-	private Coordinate car = new Coordinate(0, 0); //Current coordinates of the agent/vehicle
+	private Coordinate car = new Coordinate(0, 6); //Current coordinates of the agent/vehicle
 	private int velocity; //Agent/vehicle velocity
 	private int sensor; //Sensor range
 	
-	private int nObstacles; //Total of static obstacles
+	private byte nObstacles; //Total of static obstacles
 	private ArrayList<Coordinate> obstacles;
 	private Coordinate obstacle1;
 	private Coordinate obstacle2;
@@ -44,13 +44,13 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			
 		this.velocity = 1;
 		
-		this.sensor = 9;
+		this.sensor = 40;
 		
-		this.nObstacles = 3;
+		this.nObstacles = simulator.getObstaclesQuantity();
 		
 		this.simulate = true;
 		
-		this.waitTimeLocation = 300;
+		this.waitTimeLocation = 30;
 		
 		obstacles = new ArrayList<Coordinate>(nObstacles);
 
@@ -70,7 +70,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 		int i = 1;
 		
-		Coordinate aux = new Coordinate((9 + (int)(Math.random() * 31)),((int) (Math.random() * 2)));		
+		Coordinate aux = new Coordinate((50 + (int)(Math.random() * 100 + 1)),getRoad((int)(Math.random() * 4 + 1)));		
 		
 		obstacles.add(new Coordinate(aux.getX(), aux.getY()));
 //		obstacles.add(new Coordinate(20,0));
@@ -79,9 +79,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		
 		while (i < nObstacles) {
 			do {
-				aux.setX(obstacles.get(i-1).getX() + (int)(Math.random() * 31));
-				aux.setY((int) (Math.random() * 2));
-			} while (obstacles.get(i-1).getX() == aux.getX() && obstacles.get(i-1).getY() == aux.getY());
+				aux.setX(obstacles.get(i-1).getX() + (int)(Math.random() * 100 + 1));
+				aux.setY(getRoad((int)(Math.random() * 4 + 1)));
+			} while (aux.getX() < obstacles.get(i-1).getX()+50 && obstacles.get(i-1).getY() == aux.getY() && aux.getX() > obstacles.get(i-1).getX());
 			
 			obstacles.add(new Coordinate(aux.getX(), aux.getY()));
 			
@@ -109,6 +109,16 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		
 	}
 	
+	private int getRoad(int roadNumber) {
+		switch(roadNumber) {
+			case 1: return 6;
+			case 2: return 43;
+			case 3: return 80;
+			case 4: return 117;
+		}
+		return 0;
+	}
+	
 	private void setObstacles() {
 		
 		obstacle1 = obstacles.get(controlObstacles);
@@ -132,24 +142,28 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		old_position.addTerm(new NumberTermImpl(car.getY()));
 		
 		removePercept(agName, old_position); //remove old position
+		
+		Predicate going_forward = new Predicate("going_forward");
+		
+		removePercept(agName, going_forward);
 	}
 	
-private void removeObstaclePredicate(String agName) {
-		
-	if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
-		Predicate obs2 = new Predicate("obs2");
-		obs2.addTerm(new NumberTermImpl(obstacle2.getX()));
-		obs2.addTerm(new NumberTermImpl(obstacle2.getY()));
-		
-		removePercept(agName, obs2);
-	} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {
-		Predicate obs1 = new Predicate("obs1");
-		obs1.addTerm(new NumberTermImpl(obstacle1.getX()));
-		obs1.addTerm(new NumberTermImpl(obstacle1.getY()));
-
-		removePercept(agName, obs1);	
+	private void removeObstaclePredicate(String agName) {
+			
+		if(car.getX()+50+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {
+			Predicate obs2 = new Predicate("obs2");
+			obs2.addTerm(new NumberTermImpl(obstacle2.getX()));
+			obs2.addTerm(new NumberTermImpl(obstacle2.getY()));
+			
+			removePercept(agName, obs2);
+		} else if(car.getX()+50+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {
+			Predicate obs1 = new Predicate("obs1");
+			obs1.addTerm(new NumberTermImpl(obstacle1.getX()));
+			obs1.addTerm(new NumberTermImpl(obstacle1.getY()));
+	
+			removePercept(agName, obs1);	
+		}
 	}
-}
 	
 	private void addNewPosition(String agName) {
 		
@@ -159,9 +173,11 @@ private void removeObstaclePredicate(String agName) {
 		
 		addPercept(agName, at); //inform new position to the agent
 
-		Predicate going_forward = new Predicate("going_forward");
+		if(car.getY() == 43 || car.getY() == 6) {
+			Predicate going_forward = new Predicate("going_forward");
 		
-		addPercept(agName, going_forward);
+			addPercept(agName, going_forward);
+		}
 	}
 	
 	private void sendMessageSimulator() {
@@ -194,7 +210,7 @@ private void removeObstaclePredicate(String agName) {
 				
 				removeOldPosition(agName);
 				
-				car.setX(car.getX() + velocity);
+				car.setX(car.getX() + 1);
 				
 				System.err.println("MOVING " + car.getX() + " " + car.getY());
 				
