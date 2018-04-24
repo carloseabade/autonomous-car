@@ -47,7 +47,53 @@ GWENDOLEN
 						  V == MV} <-						  
 	+run;
 
-        /********************************************************* COM 1 OBSTÁCULO **********************************************************/         
+        /**************************************************** COM 1 OBSTÁCULO EM OUTRA LANE *****************************************************/         
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  Y < Y1} <-						  
+	removeObs1,
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs1(X1, Y1),
+						  Y1 < Y} <-						  
+	removeObs1,
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  Y < Y2} <-						  
+	removeObs2,
+	check_env,
+	+!go_forward [perform];
+	
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  Y2 < Y} <-						  
+	removeObs2,
+	check_env,
+	+!go_forward [perform];
+	
+        /**************************************************** COM 1 OBSTÁCULO NA MESMA LANE *****************************************************/
 
 +!go_forward [perform] : {B lane0(D0), 
 						  B lane1(D1),
@@ -78,8 +124,37 @@ GWENDOLEN
 						  Y == Y1} <-						  
 	go_right,
 	removeObs1,
-	-change_lane,
-	-obs1Close,
+	+!go_forward [perform];
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  B obs2Close,
+						 ~B change_lane,
+						 ~B stop,
+						 ~B obs1(X1, Y1),
+						 ~B obs1Close,
+						  Y == Y2} <-						  
+	around,
+	+!go_forward [perform];
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),  
+						  B obs2(X2, Y2),
+						  B obs2Close,
+						  B change_lane,
+						  B in_lane0,
+						 ~B obs1(X1, Y1),
+						 ~B obs1Close,
+						  Y == Y2} <-						  
+	go_right,
+	removeObs2,
 	+!go_forward [perform];
 
 /*******************************************************************************************************************************************/
