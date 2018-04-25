@@ -19,7 +19,7 @@ GWENDOLEN
 	
 /************************************************************* 2 LANES NA MESMA DIREÇÃO *************************************************************/
 
-        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/         
+        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/                          
 
 +!go_forward [perform] : {B lane0(D0), 
 						  B lane1(D1),
@@ -47,98 +47,69 @@ GWENDOLEN
 						  V == MV} <-						  
 	+run;
 
-        /**************************************************** COM 1 OBSTÁCULO EM OUTRA LANE *****************************************************/         
+
+        /************************************************** COM 1 OBSTÁCULO PRÓXIMO *********************************************************/
 
 +!go_forward [perform] : {B lane0(D0), 
 						  B lane1(D1),
 						  0 < D0,
-						  0 < D1,
-						  B at(X, Y),  
-						  B obs1(X1, Y1),
-						  Y < Y1} <-						  
-	removeObs1,
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B lane0(D0), 
-						  B lane1(D1),
-						  0 < D0,
-						  0 < D1,
-						  B at(X, Y),  
-						  B obs1(X1, Y1),
-						  Y1 < Y} <-						  
-	removeObs1,
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B lane0(D0), 
-						  B lane1(D1),
-						  0 < D0,
-						  0 < D1,
-						  B at(X, Y),  
-						  B obs2(X2, Y2),
-						  Y < Y2} <-						  
-	removeObs2,
-	check_env,
-	+!go_forward [perform];
-	
-+!go_forward [perform] : {B lane0(D0), 
-						  B lane1(D1),
-						  0 < D0,
-						  0 < D1,
-						  B at(X, Y),  
-						  B obs2(X2, Y2),
-						  Y2 < Y} <-						  
-	removeObs2,
-	check_env,
-	+!go_forward [perform];
-	
-        /**************************************************** COM 1 OBSTÁCULO NA MESMA LANE *****************************************************/
-
-+!go_forward [perform] : {B lane0(D0), 
-						  B lane1(D1),
-						  0 < D0,
-						  0 < D1,
-						  B at(X, Y),  
-						  B obs1(X1, Y1),
+						  0 < D1,  
 						  B obs1Close,
-						 ~B change_lane,
-						 ~B stop,
-						 ~B obs2(X2, Y2),
-						 ~B obs2Close,
-						  Y == Y1} <-						  
+						 ~B obs2Close,						  
+						 ~B change_lane} <-						  
 	around,
+	check_env,
 	+!go_forward [perform];
 
 +!go_forward [perform] : {B lane0(D0), 
 						  B lane1(D1),
 						  0 < D0,
 						  0 < D1,
-						  B at(X, Y),  
-						  B obs1(X1, Y1),
+						  B at(X, Y),
+						  B obs1(X1, Y1), 
 						  B obs1Close,
 						  B change_lane,
 						  B in_lane0,
-						 ~B obs2(X2, Y2),
 						 ~B obs2Close,
 						  Y == Y1} <-						  
 	go_right,
-	removeObs1,
+	check_env,
 	+!go_forward [perform];
 
 +!go_forward [perform] : {B lane0(D0), 
 						  B lane1(D1),
 						  0 < D0,
 						  0 < D1,
-						  B at(X, Y),  
-						  B obs2(X2, Y2),
-						  B obs2Close,
+						  B at(X, Y),
+						  B obs1(X1, Y1), 						    
+						  B obs1Close,
+						  B change_lane,
+						  B in_lane1,
+						 ~B obs2Close,
+						  Y == Y1} <-						  
+	go_left,
+	check_env,
+	+!go_forward [perform];
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1, 						    
+						  B obs1Close,
 						 ~B change_lane,
-						 ~B stop,
-						 ~B obs1(X1, Y1),
-						 ~B obs1Close,
-						  Y == Y2} <-						  
+						 ~B obs2Close} <-
+	print(oi),						  
+	+run;
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,  
+						  B obs2Close,
+						 ~B obs1Close,						  
+						 ~B change_lane} <-						  
 	around,
+	check_env,
 	+!go_forward [perform];
 
 +!go_forward [perform] : {B lane0(D0), 
@@ -150,14 +121,47 @@ GWENDOLEN
 						  B obs2Close,
 						  B change_lane,
 						  B in_lane0,
-						 ~B obs1(X1, Y1),
 						 ~B obs1Close,
 						  Y == Y2} <-						  
 	go_right,
-	removeObs2,
+	check_env,
 	+!go_forward [perform];
 
-/*******************************************************************************************************************************************/
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,
+						  B at(X, Y),
+						  B obs2(X2, Y2), 						    
+						  B obs2Close,
+						  B change_lane,
+						  B in_lane1,
+						 ~B obs1Close,
+						  Y == Y2} <-						  
+	go_left,
+	check_env,
+	+!go_forward [perform];
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1, 						    
+						  B obs2Close,
+						 ~B change_lane,
+						 ~B obs1Close} <-						  
+	+run;	
+	
+        /**************************************************** COM 2 OBSTÁCULOS PRÓXIMOS ****************************************************/	
+
++!go_forward [perform] : {B lane0(D0), 
+						  B lane1(D1),
+						  0 < D0,
+						  0 < D1,					    
+						  B obs1Close,
+						  B obs2Close} <-						  
+	+stop;
+
+/****************************************************************************************************************************************************/
 
 +accelerate : {True} <-
 	print(accelerate),
