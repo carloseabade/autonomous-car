@@ -21,15 +21,13 @@ public class Car extends Coordinate{
 	  Distancia maxima: 60m. Proporcional 30*/
 	private int wideSensor; 
 	
-	public Car(int length, int width, int velocity, int ultrasonicSensor, int wideSensor, int x, int y) {
+	public Car(int length, int width, int velocity, int x, int y) {
 		
 		super.setX(x);
 		super.setY(y);
 		super.setLength(length);
 		super.setWidth(width);
 		this.velocity = velocity;
-		this.ultrasonicSensor = ultrasonicSensor;
-		this.wideSensor = wideSensor;
 		
 	}
 

@@ -4,6 +4,7 @@ public class Obstacle extends Coordinate{
 	
 	private Boolean found = false;
 	private Boolean analized = false;
+	private Boolean sinalized = false;
 	private Boolean overPast = false;
 	
 	public Obstacle(int length, int width, int x, int y) {
@@ -37,5 +38,13 @@ public class Obstacle extends Coordinate{
 
 	public void setAnalized(Boolean analized) {
 		this.analized = analized;
+	}
+
+	public Boolean getSinalized() {
+		return sinalized;
+	}
+
+	public void setSinalized(Boolean sinalized) {
+		this.sinalized = sinalized;
 	}
 }

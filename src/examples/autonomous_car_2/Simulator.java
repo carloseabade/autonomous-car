@@ -41,7 +41,7 @@ public class Simulator extends JFrame{
    private int width = d.width;
    private int height = d.height;
 
-   private Coordinate car = new Car(5, 2, 1, 30, 4, 0, 0); // Coordenada onde o agente está localizado.
+   private Coordinate car = new Car(5, 2, 1, 0, 0); // Coordenada onde o agente está localizado.
    private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();
 
    private static DatagramSocket server;
