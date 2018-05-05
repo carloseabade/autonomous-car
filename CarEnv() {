@@ -1,0 +1,1486 @@
+[1mdiff --git a/src/examples/autonomous_car/AutonomousCarEnv.java b/src/examples/autonomous_car/AutonomousCarEnv.java[m
+[1mindex d0666db..e86666b 100644[m
+[1m--- a/src/examples/autonomous_car/AutonomousCarEnv.java[m
+[1m+++ b/src/examples/autonomous_car/AutonomousCarEnv.java[m
+[36m@@ -8,271 +8,602 @@[m [mimport ail.syntax.Action;[m
+ import ail.syntax.NumberTermImpl;[m
+ import ail.syntax.Predicate;[m
+ import ail.syntax.Unifier;[m
+[32m+[m[32mimport ail.syntax.VarTerm;[m
+ import ail.util.AILexception;[m
+ [m
+ public class AutonomousCarEnv extends DefaultEnvironment{[m
+[31m-	[m
+[31m-	private Simulator simulator = new Simulator();[m
+[31m-	[m
+[31m-	private Coordinate car = new Coordinate(0, 6); //Current coordinates of the agent/vehicle[m
+[31m-	private int velocity; //Agent/vehicle velocity[m
+[31m-	private int sensor; //Sensor range[m
+[31m-	[m
+[31m-	private byte nObstacles; //Total of static obstacles[m
+[31m-	private ArrayList<Coordinate> obstacles;[m
+[31m-	private Coordinate obstacle1;[m
+[31m-	private Coordinate obstacle2;[m
+[31m-	[m
+[31m-	private boolean simulate; //Determines if the environment should send message to the simulator[m
+[31m-	private int waitTimeLocation; //Wait time to send first message[m
+[31m-	private int controlObstacles = 0; [m
+[31m-	[m
+[31m-	public AutonomousCarEnv() {[m
+[31m-		new Thread(new Runnable() {[m
+[31m-		     public void run() {[m
+[31m-		          simulator.startAnimation();[m
+[31m-		     }[m
+[31m-		}).start();[m
+[31m-	}[m
+[31m-	[m
+[31m-	// Environment setup[m
+[32m+[m
+[32m+[m	[32m/* Armazena as inforçaões do carro e a sua posição*/[m
+[32m+[m	[32mprivate Car car;[m[41m [m
+[32m+[m
+[32m+[m	[32m/*Quantidade de faixas  e obstáculos no ambiente (Pelo menos 2 lanes e 1 obstáculo)*/[m
+[32m+[m	[32mprivate int nLanes;[m
+[32m+[m	[32mprivate int nObstacles;[m[41m [m
+[32m+[m
+[32m+[m	[32m/*Lista que armazena as as informações de todos os obstáculos*/[m
+[32m+[m	[32mprivate ArrayList<Obstacle> obstacles;[m
+[32m+[m
+[32m+[m	[32m/*Controle dos obstáculos encontrados, analizados, sinalizados e ultrapassados*/[m
+[32m+[m	[32mprivate int foundObstacle;[m
+[32m+[m	[32mprivate int analizedObstacle;[m
+[32m+[m	[32mprivate int sinalized;[m
+[32m+[m	[32mprivate int overpastObstacle;[m
+[32m+[m
+[32m+[m	[32m/*Determina se o ambiente irá enviar as mensagens para o simulador*/[m
+[32m+[m	[32mprivate boolean simulate;[m[41m [m
+[32m+[m
+[32m+[m	[32m/*Controle para nao enviar obstaculos mais de uma vez para o simulador*/[m
+[32m+[m	[32mprivate boolean notSend;[m
+[32m+[m
+[32m+[m	[32m/*Tempo de espera para enviar as mensagens*/[m
+[32m+[m	[32mprivate int waitTimeLocation;[m[41m [m
+[32m+[m
+[32m+[m	[32m/*Controla a mudança de tempo em relação a aceleração e velocidade do carro*/[m
+[32m+[m	[32mprivate int timeControl;[m[41m [m
+[32m+[m
+[32m+[m	[32m/*Inicia informações do ambiente*/[m
+ 	@Override[m
+ 	public void setMAS(MAS m) {[m
+[31m-		[m
+[31m-//		while(!simulator.getAnimate()) {}[m
+[31m-[m
+ 		super.setMAS(m);[m
+[31m-			[m
+[31m-		this.velocity = 1;[m
+[31m-		[m
+[31m-		this.sensor = 40;[m
+[31m-		[m
+[31m-		this.nObstacles = simulator.getObstaclesQuantity();[m
+[31m-		[m
+[32m+[m
+ 		this.simulate = true;[m
+[31m-		[m
+[31m-		this.waitTimeLocation = 30;[m
+[31m-		[m
+[31m-		obstacles = new ArrayList<Coordinate>(nObstacles);[m
+[31m-[m
+[31m-		initObstacle(); //Initiate Obstacles (Coordinates)[m
+[31m-		[m
+[31m-		setObstacles(); //Set Obstacles (Coordinates)[m
+[31m-		[m
+[32m+[m		[32mthis.notSend = true;[m
+[32m+[m		[32mthis.waitTimeLocation = 10000; //10 seg == 10000 milisegundos[m[41m [m
+[32m+[m		[32mthis.timeControl = 0;[m
+[32m+[m
+[32m+[m		[32m/*Inicia o carro na ordem: length, width, velocity, ultrasonicSensor, wideSensor, x, y*/[m
+[32m+[m		[32mthis.car = new Car(5, 2, 0, 0, 0);[m
+[32m+[m
+[32m+[m		[32mthis.nLanes = 2;[m
+[32m+[m
+[32m+[m		[32mthis.nObstacles = 20;[m
+[32m+[m		[32mthis.obstacles = new ArrayList<Obstacle>(nObstacles);[m
+[32m+[m		[32mthis.foundObstacle = 0;[m
+[32m+[m		[32mthis.analizedObstacle = 0;[m
+[32m+[m		[32mthis.sinalized = 0;[m
+[32m+[m		[32mthis.overpastObstacle = 0;[m
+[32m+[m
+[32m+[m		[32minitObstacle();[m
+[32m+[m
+ 		Predicate start = new Predicate("start");[m
+ 		addPercept("car", start);[m
+[31m-		[m
+[31m-	}[m
+[31m-	[m
+[31m-	/*[m
+[31m-	 * Set 'nObstacles' in the environment randomly.[m
+[31m-	 */[m
+[31m-	private void initObstacle() {[m
+ [m
+[31m-		int i = 1;[m
+[31m-		[m
+[31m-		Coordinate aux = new Coordinate((50 + (int)(Math.random() * 100 + 1)),getRoad((int)(Math.random() * 4 + 1)));		[m
+[31m-		[m
+[31m-		obstacles.add(new Coordinate(aux.getX(), aux.getY()));[m
+[31m-//		obstacles.add(new Coordinate(20,0));[m
+[31m-//		obstacles.add(new Coordinate(33,1));[m
+[31m-//		obstacles.add(new Coordinate(39,1));[m
+[31m-		[m
+[31m-		while (i < nObstacles) {[m
+[31m-			do {[m
+[31m-				aux.setX(obstacles.get(i-1).getX() + (int)(Math.random() * 100 + 1));[m
+[31m-				aux.setY(getRoad((int)(Math.random() * 4 + 1)));[m
+[31m-			} while (aux.getX() < obstacles.get(i-1).getX()+50 && obstacles.get(i-1).getY() == aux.getY() && aux.getX() > obstacles.get(i-1).getX());[m
+[31m-			[m
+[31m-			obstacles.add(new Coordinate(aux.getX(), aux.getY()));[m
+[31m-			[m
+[31m-			i++;[m
+[31m-		}[m
+[31m-		[m
+[31m-		i = 0;[m
+[31m-		[m
+[31m-		// Simulator Setup[m
+[31m-		simulator.setObstacles(obstacles);[m
+[31m-		[m
+ 	}[m
+[31m-	[m
+[31m-	private int getRoad(int roadNumber) {[m
+[31m-		switch(roadNumber) {[m
+[31m-			case 1: return 6;[m
+[31m-			case 2: return 43;[m
+[31m-			case 3: return 80;[m
+[31m-			case 4: return 117;[m
+[32m+[m
+[32m+[m	[32mpublic Unifier executeAction(String agName, Action act) throws AILexception {[m
+[32m+[m		[32mUnifier u = new Unifier();[m
+[32m+[m
+[32m+[m		[32mif(act.getFunctor().equals("sensor_enable")) {[m
+[32m+[m
+[32m+[m			[32mcar.setUltrasonicSensor(4);[m
+[32m+[m			[32mcar.setWideSensor(30);[m
+[32m+[m
+[32m+[m			[32mPredicate velocity = new Predicate("velocity");[m
+[32m+[m			[32mvelocity.addTerm(new NumberTermImpl(car.getVelocity()));[m
+[32m+[m			[32maddPercept(agName, velocity);[m
+[32m+[m
+[32m+[m			[32m/*1 m/s² --- * 10 por cada posição da matriz corresponder a 10cm*/[m
+[32m+[m			[32mcar.setAcceleration(1*10);[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("gps_enable")) {[m
+[32m+[m
+[32m+[m			[32mPredicate at = new Predicate("at");[m
+[32m+[m			[32mat.addTerm(new NumberTermImpl(car.getX()));[m
+[32m+[m			[32mat.addTerm(new NumberTermImpl(car.getY()));[m
+[32m+[m			[32maddPercept(agName, at);[m
+[32m+[m
+[32m+[m			[32m/*30 m/s = 108 km/h --- * 10 por cada posição da matriz corresponder a 10cm*/[m
+[32m+[m			[32mcar.setMaxVelocity(30*10);[m
+[32m+[m
+[32m+[m			[32mPredicate maxVelocity = new Predicate("maxVelocity");[m
+[32m+[m			[32mmaxVelocity.addTerm(new NumberTermImpl(car.getMaxVelocity()));[m
+[32m+[m			[32maddPercept(agName, maxVelocity);[m
+[32m+[m
+[32m+[m			[32mswitch (nLanes) {[m
+[32m+[m			[32mcase 2:[m[41m [m
+[32m+[m				[32maddLane0(agName);[m
+[32m+[m				[32maddLane1(agName);[m
+[32m+[m				[32mbreak;[m
+[32m+[m			[32mcase 3:[m
+[32m+[m				[32maddLane0(agName);[m
+[32m+[m				[32maddLane1(agName);[m
+[32m+[m				[32maddLane2(agName);[m
+[32m+[m				[32mbreak;[m
+[32m+[m			[32mcase 4:[m
+[32m+[m				[32maddLane0(agName);[m
+[32m+[m				[32maddLane1(agName);[m
+[32m+[m				[32maddLane2(agName);[m
+[32m+[m				[32maddLane3(agName);[m
+[32m+[m				[32mbreak;[m
+[32m+[m			[32mdefault:[m
+[32m+[m				[32mbreak;[m
+[32m+[m			[32m}[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("run")) {[m[41m	[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m
+[32m+[m		[32m} else if (act.getFunctor().equals("check_env")) {[m
+[32m+[m
+[32m+[m			[32mcheckEnvironment(agName);[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("around")) {[m
+[32m+[m
+[32m+[m			[32maround(agName);[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("go_right")) {[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m			[32mcar.setY(car.getY() + 1);[m[41m [m
+[32m+[m
+[32m+[m			[32mSystem.err.println("CHANGED LANE " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m[41m	[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("go_left")) {[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m			[32mcar.setY(car.getY() - 1);[m[41m [m
+[32m+[m
+[32m+[m			[32mSystem.err.println("CHANGED LANE " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("remove_change_lane")) {[m
+[32m+[m
+[32m+[m			[32mPredicate change_lane = new Predicate("change_lane");[m
+[32m+[m			[32mremovePercept(agName, change_lane);[m
+[32m+[m			[32mSystem.out.println("change_lane removed");[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("accelerate")) {[m
+[32m+[m
+[32m+[m			[32mspeedUp(agName);[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("decelerate")) {[m
+[32m+[m
+[32m+[m			[32mspeedDown(agName);[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m
+[32m+[m		[32m} else if(act.getFunctor().equals("stop")) {[m
+[32m+[m
+[32m+[m			[32mPredicate stopped = new Predicate("stopped");[m
+[32m+[m			[32maddPercept(agName, stopped);[m
+[32m+[m
+[32m+[m			[32mPredicate start = new Predicate("start");[m
+[32m+[m			[32mremovePercept(agName, start);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m[41m [m
+ 		}[m
+[31m-		return 0;[m
+[32m+[m
+[32m+[m		[32msuper.executeAction(agName, act);[m
+[32m+[m
+[32m+[m		[32mreturn u;[m
+[32m+[m
+ 	}[m
+ 	[m
+[31m-	private void setObstacles() {[m
+[31m-		[m
+[31m-		obstacle1 = obstacles.get(controlObstacles);[m
+[31m-		System.out.println("Obstacle1 X: " + obstacle1.getX());[m
+[31m-		System.out.println("Obstacle1 Y: " + obstacle1.getY());[m
+[31m-		[m
+[31m-		if(controlObstacles+1 < obstacles.size()) {[m
+[31m-			obstacle2 = obstacles.get(controlObstacles+1);[m
+[31m-			System.out.println("Obstacle2 X: " + obstacle2.getX());[m
+[31m-			System.out.println("Obstacle2 Y: " + obstacle2.getY());[m
+[32m+[m[32m/**************************************************************************** FUNÇÕES ****************************************************************************/[m
+[32m+[m
+[32m+[m	[32m/*Popula o Array com os obstáculos e define as coordenadas aleatoriamente*/[m
+[32m+[m	[32mprivate void initObstacle() {[m
+[32m+[m		[32m/*obstacles.add(new Obstacle(5, 2, 35, 0));[m
+[32m+[m		[32mobstacles.add(new Obstacle(5, 2, 50, 1));[m
+[32m+[m		[32mobstacles.add(new Obstacle(5, 2, 75, 0));[m
+[32m+[m		[32mobstacles.add(new Obstacle(5, 2, 90, 1));[m
+[32m+[m		[32mobstacles.add(new Obstacle(5, 2, 95, 0));[m
+[32m+[m
+[32m+[m		[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m				[32m{"obsLocation", String.valueOf(obstacles.get(0).getX()), String.valueOf(obstacles.get(0).getY())} ) );[m
+[32m+[m		[32mSystem.out.println("Obstacle (" + obstacles.get(0).getX() + "," + obstacles.get(0).getY() + ")");[m
+[32m+[m
+[32m+[m		[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m				[32m{"obsLocation", String.valueOf(obstacles.get(1).getX()), String.valueOf(obstacles.get(1).getY())} ) );[m
+[32m+[m		[32mSystem.out.println("Obstacle (" + obstacles.get(1).getX() + "," + obstacles.get(1).getY() + ")");[m
+[32m+[m
+[32m+[m		[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m				[32m{"obsLocation", String.valueOf(obstacles.get(2).getX()), String.valueOf(obstacles.get(2).getY())} ) );[m
+[32m+[m		[32mSystem.out.println("Obstacle (" + obstacles.get(2).getX() + "," + obstacles.get(2).getY() + ")");[m
+[32m+[m
+[32m+[m		[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m				[32m{"obsLocation", String.valueOf(obstacles.get(3).getX()), String.valueOf(obstacles.get(3).getY())} ) );[m
+[32m+[m		[32mSystem.out.println("Obstacle (" + obstacles.get(3).getX() + "," + obstacles.get(3).getY() + ")");[m
+[32m+[m
+[32m+[m		[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m				[32m{"obsLocation", String.valueOf(obstacles.get(4).getX()), String.valueOf(obstacles.get(4).getY())} ) );[m
+[32m+[m		[32mSystem.out.println("Obstacle (" + obstacles.get(4).getX() + "," + obstacles.get(4).getY() + ")");*/[m
+[32m+[m		[32mif (notSend) {[m
+[32m+[m			[32mint i = 1;[m
+[32m+[m
+[32m+[m			[32mObstacle aux = new Obstacle(5, 2, 9 + (int)(Math.random() * 31), (int) (Math.random() * 2));[m
+[32m+[m
+[32m+[m			[32mobstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));[m
+[32m+[m
+[32m+[m			[32mwhile (i < nObstacles) {[m
+[32m+[m				[32mdo {[m
+[32m+[m					[32maux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 31));[m
+[32m+[m					[32maux.setY((int) (Math.random() * 2));[m
+[32m+[m				[32m} while (aux.getX() == obstacles.get(i-1).front() && obstacles.get(i-1).getY() == aux.getY());[m
+[32m+[m
+[32m+[m				[32mobstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));[m
+[32m+[m
+[32m+[m				[32mi++;[m
+[32m+[m			[32m}[m
+[32m+[m			[32mSystem.out.println("Environment obstacles:");[m
+[32m+[m
+[32m+[m
+[32m+[m			[32mi = 0;[m
+[32m+[m
+[32m+[m			[32mif(simulate) {[m
+[32m+[m				[32mwhile (i < nObstacles) {[m
+[32m+[m					[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m							[32m{"obsLocation", String.valueOf(obstacles.get(i).getX()), String.valueOf(obstacles.get(i).getY())} ) );[m
+[32m+[m					[32mSystem.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");[m
+[32m+[m					[32m/*try {[m
+[32m+[m						[32mTimeUnit.MILLISECONDS.sleep(100);[m
+[32m+[m					[32m} catch(Exception e) {[m
+[32m+[m						[32mSystem.err.println(e);[m
+[32m+[m					[32m}*/[m
+[32m+[m
+[32m+[m					[32mi++;[m
+[32m+[m				[32m}[m
+[32m+[m			[32m}[m
+[32m+[m			[32mnotSend = false;[m
+ 		}[m
+[31m-		[m
+[31m-		controlObstacles += 2;[m
+[31m-		[m
+ 	}[m
+[31m-	[m
+[31m-	private void removeOldPosition(String agName) {[m
+[31m-		[m
+[32m+[m
+[32m+[m	[32m/*Remove a crença da posição atual do carro*/[m
+[32m+[m	[32mprivate void removeOldCarPosition(String agName) {[m
+ 		Predicate old_position = new Predicate("at");[m
+[31m-		old_position.addTerm(new NumberTermImpl(car.getX()));[m
+[31m-		old_position.addTerm(new NumberTermImpl(car.getY()));[m
+[31m-		[m
+[31m-		removePercept(agName, old_position); //remove old position[m
+[31m-		[m
+[31m-		Predicate going_forward = new Predicate("going_forward");[m
+[31m-		[m
+[31m-		removePercept(agName, going_forward);[m
+[31m-	}[m
+[31m-	[m
+[31m-	private void removeObstaclePredicate(String agName) {[m
+[31m-			[m
+[31m-		if(car.getX()+50+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {[m
+[31m-			Predicate obs2 = new Predicate("obs2");[m
+[31m-			obs2.addTerm(new NumberTermImpl(obstacle2.getX()));[m
+[31m-			obs2.addTerm(new NumberTermImpl(obstacle2.getY()));[m
+[31m-			[m
+[31m-			removePercept(agName, obs2);[m
+[31m-		} else if(car.getX()+50+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()) {[m
+[31m-			Predicate obs1 = new Predicate("obs1");[m
+[31m-			obs1.addTerm(new NumberTermImpl(obstacle1.getX()));[m
+[31m-			obs1.addTerm(new NumberTermImpl(obstacle1.getY()));[m
+[31m-	[m
+[31m-			removePercept(agName, obs1);	[m
+[31m-		}[m
+[32m+[m		[32mold_position.addTerm(new VarTerm("X"));[m
+[32m+[m		[32mold_position.addTerm(new VarTerm("Y"));[m
+[32m+[m
+[32m+[m		[32mremoveUnifiesPercept(agName, old_position);[m
+ 	}[m
+[31m-	[m
+[31m-	private void addNewPosition(String agName) {[m
+[31m-		[m
+[32m+[m
+[32m+[m	[32m/*Adiciona a crença da nova posição do carro*/[m
+[32m+[m	[32mprivate void addNewCarPosition(String agName) {[m
+ 		Predicate at = new Predicate("at");[m
+ 		at.addTerm(new NumberTermImpl(car.getX()));[m
+ 		at.addTerm(new NumberTermImpl(car.getY()));[m
+[31m-		[m
+[31m-		addPercept(agName, at); //inform new position to the agent[m
+ [m
+[31m-		if(car.getY() == 43 || car.getY() == 6) {[m
+[31m-			Predicate going_forward = new Predicate("going_forward");[m
+[31m-		[m
+[31m-			addPercept(agName, going_forward);[m
+[32m+[m		[32maddPercept(agName, at);[m
+[32m+[m
+[32m+[m		[32mPredicate going_forward = new Predicate("going_forward");[m
+[32m+[m
+[32m+[m		[32maddPercept(agName, going_forward);[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void speedUp(String agName) {[m
+[32m+[m		[32mremoveOldVelocity(agName);[m
+[32m+[m
+[32m+[m		[32mcar.setVelocity(car.getVelocity() + car.getAcceleration());[m
+[32m+[m
+[32m+[m		[32mif (timeControl == 0) {[m
+[32m+[m			[32mtimeControl +=1;[m
+[32m+[m			[32mwaitTimeLocation = waitTimeLocation/car.getAcceleration();[m
+[32m+[m		[32m} else {[m
+[32m+[m			[32mtimeControl +=1;[m
+[32m+[m			[32mwaitTimeLocation = waitTimeLocation - (waitTimeLocation / timeControl);[m
+ 		}[m
+[32m+[m
+[32m+[m		[32maddNewVelocity(agName);[m
+ 	}[m
+[31m-	[m
+[31m-	private void sendMessageSimulator() {[m
+[31m-		[m
+[31m-		simulator.setCarLocation(car);[m
+[31m-		[m
+[32m+[m
+[32m+[m	[32mprivate void speedDown(String agName) {[m[41m	[m
+[32m+[m		[32mremoveOldVelocity(agName);[m
+[32m+[m
+[32m+[m		[32mcar.setVelocity(car.getVelocity() - car.getAcceleration());[m
+[32m+[m
+[32m+[m		[32mif (timeControl > 1) {[m
+[32m+[m			[32mtimeControl -=1;[m
+[32m+[m			[32mwaitTimeLocation = waitTimeLocation + (waitTimeLocation / timeControl);[m
+[32m+[m		[32m} else if (timeControl == 1) {[m
+[32m+[m			[32mwaitTimeLocation = waitTimeLocation * car.getAcceleration();[m
+[32m+[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32maddNewVelocity(agName);[m
+ 	}[m
+ [m
+[32m+[m	[32mprivate void removeOldVelocity(String agName) {[m
+[32m+[m		[32mPredicate old_Velocity = new Predicate("velocity");[m
+[32m+[m		[32mold_Velocity.addTerm(new VarTerm("X"));[m
+ [m
+[31m-	// Identifies agents' actions[m
+[31m-		public Unifier executeAction(String agName, Action act) throws AILexception {[m
+[31m-			[m
+[31m-			Unifier u = new Unifier();[m
+[31m-			[m
+[31m-			if(car.getX() > obstacle1.getX() && car.getX() > obstacle2.getX() && controlObstacles < obstacles.size()) {[m
+[31m-				setObstacles();[m
+[31m-			}[m
+[31m-			[m
+[31m-			if(act.getFunctor().equals("run")) {[m
+[31m-				[m
+[31m-				removeOldPosition(agName);[m
+[31m-				[m
+[31m-				car.setX(car.getX() + 1);[m
+[31m-				[m
+[31m-				System.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[31m-				[m
+[31m-				addNewPosition(agName);[m
+[31m-				[m
+[31m-				sendMessageSimulator();[m
+[31m-	[m
+[31m-			}[m
+[31m-			else if (act.getFunctor().equals("check_env")) {[m
+[31m-[m
+[31m-				if(car.getX()+sensor >= obstacle1.getX() && car.getX()+sensor >= obstacle2.getX() && car.getX() < obstacle1.getX()+5 && car.getX() < obstacle2.getX()+5 && obstacle1.getY() != obstacle2.getY()) {[m
+[31m-					Predicate obs1 = new Predicate("obs1");[m
+[31m-					obs1.addTerm(new NumberTermImpl(obstacle1.getX()));[m
+[31m-					obs1.addTerm(new NumberTermImpl(obstacle1.getY()));[m
+[31m-					addPercept(agName, obs1);[m
+[31m-					[m
+[31m-					Predicate obs2 = new Predicate("obs2");[m
+[31m-					obs2.addTerm(new NumberTermImpl(obstacle2.getX()));[m
+[31m-					obs2.addTerm(new NumberTermImpl(obstacle2.getY()));[m
+[31m-					addPercept(agName, obs2);[m
+[31m-					[m
+[31m-				} else if(car.getX()+sensor == obstacle2.getX() && car.getY() == obstacle2.getY()) {[m
+[31m-					Predicate obs2 = new Predicate("obs2");[m
+[31m-					obs2.addTerm(new NumberTermImpl(obstacle2.getX()));[m
+[31m-					obs2.addTerm(new NumberTermImpl(obstacle2.getY()));[m
+[31m-					[m
+[31m-					addPercept(agName, obs2);[m
+[31m-					[m
+[31m-				} else if(car.getX()+sensor == obstacle1.getX() && car.getY() == obstacle1.getY()){[m
+[31m-					Predicate obs1 = new Predicate("obs1");[m
+[31m-					obs1.addTerm(new NumberTermImpl(obstacle1.getX()));[m
+[31m-					obs1.addTerm(new NumberTermImpl(obstacle1.getY()));[m
+[31m-					[m
+[31m-					addPercept(agName, obs1);	[m
+[31m-				} [m
+[32m+[m		[32mremoveUnifiesPercept(agName, old_Velocity);[m
+[32m+[m	[32m}[m
+ [m
+[31m-			}[m
+[31m-			else if(act.getFunctor().equals("go_right")) {[m
+[31m-				[m
+[31m-				removeOldPosition(agName);[m
+[31m-				[m
+[31m-				removeObstaclePredicate(agName);[m
+[31m-				[m
+[31m-				car.setX(car.getX() + velocity);[m
+[31m-				car.setY(car.getY() + 1); [m
+[31m-				[m
+[31m-				System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());[m
+[31m-				[m
+[31m-				addNewPosition(agName);			    [m
+[31m-				[m
+[31m-				sendMessageSimulator();[m
+[31m-				[m
+[31m-			} [m
+[31m-			else if(act.getFunctor().equals("go_left")) {[m
+[31m-				[m
+[31m-				removeOldPosition(agName);[m
+[31m-[m
+[31m-				removeObstaclePredicate(agName);[m
+[31m-				[m
+[31m-				car.setX(car.getX() + velocity);[m
+[31m-				car.setY(car.getY() - 1); [m
+[31m-				[m
+[31m-				System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());[m
+[31m-				[m
+[31m-				addNewPosition(agName);[m
+[31m-				[m
+[31m-				sendMessageSimulator();[m
+[31m-				[m
+[31m-			}[m
+[31m-			else if(act.getFunctor().equals("stop")) {[m
+[31m-				Predicate stopped = new Predicate("stopped");[m
+[31m-				addPercept(agName, stopped);[m
+[31m-				[m
+[31m-				Predicate start = new Predicate("start");[m
+[31m-				removePercept(agName, start);[m
+[31m-				[m
+[31m-				sendMessageSimulator();[m
+[31m-				[m
+[31m-			}[m
+[31m-			[m
+[31m-			super.executeAction(agName, act);[m
+[31m-			[m
+[31m-			return u;[m
+[31m-			[m
+[32m+[m	[32mprivate void addNewVelocity(String agName) {[m
+[32m+[m		[32mPredicate velocity = new Predicate("velocity");[m
+[32m+[m		[32mvelocity.addTerm(new NumberTermImpl(car.getVelocity()));[m
+[32m+[m
+[32m+[m		[32maddPercept(agName, velocity); //inform new position to the agent[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m/*Sensores analizam o ambiente*/[m
+[32m+[m	[32mprivate void checkEnvironment(String agName) {[m
+[32m+[m
+[32m+[m		[32m/*Informa a lane que o carro se encontra*/[m
+[32m+[m		[32mif(car.getY() == 0) {[m
+[32m+[m			[32mPredicate in_lane1 = new Predicate("in_lane1");[m
+[32m+[m			[32mremovePercept(agName, in_lane1);[m
+[32m+[m
+[32m+[m			[32mPredicate in_lane0 = new Predicate("in_lane0");[m
+[32m+[m			[32maddPercept(agName, in_lane0);[m
+[32m+[m		[32m} else if (car.getY() == 1) {[m
+[32m+[m			[32mPredicate in_lane0 = new Predicate("in_lane0");[m
+[32m+[m			[32mremovePercept(agName, in_lane0);[m
+[32m+[m
+[32m+[m			[32mPredicate in_lane1 = new Predicate("in_lane1");[m
+[32m+[m			[32maddPercept(agName, in_lane1);[m[41m			[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m/*Encontra os obstáculos que estão dentro do alcance do WideSensor*/[m
+[32m+[m		[32mwhile(foundObstacle < obstacles.size() && !obstacles.get(foundObstacle).getFound() && obstacles.get(foundObstacle).front() <= car.front()+car.getWideSensor())[m[41m [m
+[32m+[m		[32m{[m
+[32m+[m			[32mobstacles.get(foundObstacle).setFound(true);[m
+[32m+[m			[32mSystem.out.println("FoundObstacle: (" + obstacles.get(foundObstacle).getX() + "," + obstacles.get(foundObstacle).getY() + ")");[m
+[32m+[m			[32mfoundObstacle += 1;[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32m/*Envia para o agente os obstáculos a serem analizados*/[m
+[32m+[m		[32mif (obstacles.size() > analizedObstacle && analizedObstacle == 0 && obstacles.get(analizedObstacle).getFound() && !obstacles.get(analizedObstacle).getAnalized()) {[m
+[32m+[m			[32maddObs1(agName, analizedObstacle);[m
+[32m+[m		[32m} else if (obstacles.size() > analizedObstacle && analizedObstacle-3 >= 0 && obstacles.get(analizedObstacle).getFound() && !obstacles.get(analizedObstacle).getAnalized() && obstacles.get(analizedObstacle-3).getOverPast()) {[m
+[32m+[m			[32maddObs1(agName, analizedObstacle);[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif (obstacles.size() > analizedObstacle+1 && analizedObstacle == 0 && obstacles.get(analizedObstacle+1).getFound() && !obstacles.get(analizedObstacle+1).getAnalized()) {[m
+[32m+[m			[32maddObs2(agName, analizedObstacle+1);[m[41m	[m
+[32m+[m		[32m} else if (obstacles.size() > analizedObstacle+1 && analizedObstacle-2 >= 0 && obstacles.get(analizedObstacle+1).getFound() && !obstacles.get(analizedObstacle+1).getAnalized() && obstacles.get(analizedObstacle-2).getOverPast()) {[m
+[32m+[m			[32maddObs2(agName, analizedObstacle+1);[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif (obstacles.size() > analizedObstacle+2 && analizedObstacle == 0 && obstacles.get(analizedObstacle+2).getFound() && !obstacles.get(analizedObstacle+2).getAnalized()) {[m
+[32m+[m			[32maddObs3(agName, analizedObstacle+2);[m
+[32m+[m			[32manalizedObstacle += 3;[m
+[32m+[m		[32m} else if (obstacles.size() > analizedObstacle+2 && analizedObstacle-1 >= 0 && obstacles.get(analizedObstacle+2).getFound() && !obstacles.get(analizedObstacle+2).getAnalized() && obstacles.get(analizedObstacle-1).getOverPast()) {[m
+[32m+[m			[32maddObs3(agName, analizedObstacle+2);[m
+[32m+[m			[32manalizedObstacle += 3;[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m
+[32m+[m		[32m/*Encontra os obstáculos que estão dentro do alcance do WideSensor*/[m
+[32m+[m		[32mif (obstacles.size() > sinalized && obstacles.get(sinalized).getAnalized() && !obstacles.get(sinalized).getSinalized() && obstacles.get(sinalized).back() == car.front()+car.getUltrasonicSensor()) {[m
+[32m+[m			[32mPredicate obs1Close = new Predicate("obs1Close");[m
+[32m+[m			[32maddPercept(agName, obs1Close);[m
+[32m+[m			[32mSystem.out.println("obs1close");[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif (obstacles.size() > sinalized+1 && obstacles.get(sinalized+1).getAnalized() && !obstacles.get(sinalized+1).getSinalized() && obstacles.get(sinalized+1).back() == car.front()+car.getUltrasonicSensor()) {[m
+[32m+[m			[32mPredicate obs2Close = new Predicate("obs2Close");[m
+[32m+[m			[32maddPercept(agName, obs2Close);[m
+[32m+[m			[32mSystem.out.println("obs2close");[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif (obstacles.size() > sinalized+2 && obstacles.get(sinalized+2).getAnalized() && !obstacles.get(sinalized+2).getSinalized() && obstacles.get(sinalized+2).back() == car.front()+car.getUltrasonicSensor()) {[m
+[32m+[m			[32mPredicate obs3Close = new Predicate("obs3Close");[m
+[32m+[m			[32maddPercept(agName, obs3Close);[m
+[32m+[m			[32mSystem.out.println("obs3close");[m
+[32m+[m			[32msinalized += 3;[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif(obstacles.size() > overpastObstacle && car.back() > obstacles.get(overpastObstacle).front() && !obstacles.get(overpastObstacle).getOverPast()) {[m
+[32m+[m			[32mremoveObs1(agName, overpastObstacle);[m
+[32m+[m		[32m}[m
+[32m+[m
+[32m+[m		[32mif(obstacles.size() > overpastObstacle+1 && car.back() > obstacles.get(overpastObstacle+1).front() && !obstacles.get(overpastObstacle+1).getOverPast()) {[m
+[32m+[m			[32mremoveObs2(agName, overpastObstacle+1);[m
+ 		}[m
+ [m
+[31m-}[m
+[32m+[m		[32mif(obstacles.size() > overpastObstacle+2 && car.back() > obstacles.get(overpastObstacle+2).front() && !obstacles.get(overpastObstacle+2).getOverPast()) {[m
+[32m+[m			[32mremoveObs3(agName, overpastObstacle+2);[m
+[32m+[m			[32moverpastObstacle += 3;[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void addObs1(String agName, int i) {[m
+[32m+[m		[32mPredicate obs1 = new Predicate("obs1");[m
+[32m+[m		[32mobs1.addTerm(new NumberTermImpl(obstacles.get(i).getX()));[m
+[32m+[m		[32mobs1.addTerm(new NumberTermImpl(obstacles.get(i).getY()));[m
+[32m+[m		[32maddPercept(agName, obs1);[m
+[32m+[m
+[32m+[m		[32mobstacles.get(i).setAnalized(true);[m
+[32m+[m
+[32m+[m		[32mSystem.out.println("Obstaculo1 (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void removeObs1(String agName, int i) {[m
+[32m+[m		[32mPredicate obs1 = new Predicate("obs1");[m
+[32m+[m		[32mobs1.addTerm(new NumberTermImpl(obstacles.get(i).getX()));[m
+[32m+[m		[32mobs1.addTerm(new NumberTermImpl(obstacles.get(i).getY()));[m
+[32m+[m		[32mremovePercept(agName, obs1);[m
+[32m+[m
+[32m+[m		[32mobstacles.get(i).setOverPast(true);[m
+[32m+[m
+[32m+[m		[32mPredicate obs1Close = new Predicate("obs1Close");[m
+[32m+[m		[32mremovePercept(agName, obs1Close);[m
+[32m+[m		[32mSystem.out.println("Remove obs1close");[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void addObs2(String agName, int i) {[m
+[32m+[m		[32mPredicate obs2 = new Predicate("obs2");[m
+[32m+[m		[32mobs2.addTerm(new NumberTermImpl(obstacles.get(i).getX()));[m
+[32m+[m		[32mobs2.addTerm(new NumberTermImpl(obstacles.get(i).getY()));[m
+[32m+[m		[32maddPercept(agName, obs2);[m
+[32m+[m
+[32m+[m		[32mobstacles.get(i).setAnalized(true);[m
+[32m+[m
+[32m+[m		[32mSystem.out.println("Obstaculo2 (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");[m[41m	[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void removeObs2(String agName, int i) {[m
+[32m+[m		[32mPredicate obs2 = new Predicate("obs2");[m
+[32m+[m		[32mobs2.addTerm(new NumberTermImpl(obstacles.get(i).getX()));[m
+[32m+[m		[32mobs2.addTerm(new NumberTermImpl(obstacles.get(i).getY()));[m
+[32m+[m		[32mremovePercept(agName, obs2);[m
+[32m+[m
+[32m+[m		[32mobstacles.get(i).setOverPast(true);[m
+[32m+[m
+[32m+[m		[32mPredicate obs2Close = new Predicate("obs2Close");[m
+[32m+[m		[32mremovePercept(agName, obs2Close);[m
+[32m+[m		[32mSystem.out.println("Remove obs2close");[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void addObs3(String agName, int i) {[m
+[32m+[m		[32mPredicate obs3 = new Predicate("obs3");[m
+[32m+[m		[32mobs3.addTerm(new NumberTermImpl(obstacles.get(i).getX()));[m
+[32m+[m		[32mobs3.addTerm(new NumberTermImpl(obstacles.get(i).getY()));[m
+[32m+[m		[32maddPercept(agName, obs3);[m
+[32m+[m
+[32m+[m		[32mobstacles.get(i).setAnalized(true);[m
+[32m+[m
+[32m+[m		[32mSystem.out.println("Obstaculo3 (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");[m[41m	[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void removeObs3(String agName, int i) {[m
+[32m+[m		[32mPredicate obs3 = new Predicate("obs3");[m
+[32m+[m		[32mobs3.addTerm(new NumberTermImpl(obstacles.get(i).getX()));[m
+[32m+[m		[32mobs3.addTerm(new NumberTermImpl(obstacles.get(i).getY()));[m
+[32m+[m		[32mremovePercept(agName, obs3);[m
+[32m+[m
+[32m+[m		[32mobstacles.get(i).setOverPast(true);[m
+[32m+[m
+[32m+[m		[32mPredicate obs3Close = new Predicate("obs3Close");[m
+[32m+[m		[32mremovePercept(agName, obs3Close);[m
+[32m+[m		[32mSystem.out.println("Remove obs3close");[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m/*NumberTermImpl(1) == mesma direção. NumberTermImpl(-1) == direção oposta*/[m
+[32m+[m	[32mprivate void addLane0(String agName) {[m
+[32m+[m		[32mPredicate lane0 = new Predicate("lane0");[m
+[32m+[m		[32mlane0.addTerm(new NumberTermImpl(1));[m
+[32m+[m		[32maddPercept(agName, lane0);[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void addLane1(String agName) {[m
+[32m+[m		[32mPredicate lane1 = new Predicate("lane1");[m
+[32m+[m		[32mlane1.addTerm(new NumberTermImpl(1));[m
+[32m+[m		[32maddPercept(agName, lane1);[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void addLane2(String agName) {[m
+[32m+[m		[32mPredicate lane2 = new Predicate("lane2");[m
+[32m+[m		[32mlane2.addTerm(new NumberTermImpl(-1));[m
+[32m+[m		[32maddPercept(agName, lane2);[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void addLane3(String agName) {[m
+[32m+[m		[32mPredicate lane3 = new Predicate("lane3");[m
+[32m+[m		[32mlane3.addTerm(new NumberTermImpl(-1));[m
+[32m+[m		[32maddPercept(agName, lane3);[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mprivate void around(String agName) {[m
+[32m+[m		[32mif(sinalized == 0 && obstacles.get(sinalized).back() > car.front()+1) {[m
+[32m+[m			[32mspeedDown(agName);[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m
+[32m+[m			[32mSystem.out.println("1");[m
+[32m+[m		[32m} else if (obstacles.size() > sinalized+1 && obstacles.get(sinalized).back() <= car.back() && obstacles.get(sinalized+1).back() > car.front()+1) {[m
+[32m+[m			[32mspeedDown(agName);[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m			[32mSystem.out.println("2");[m
+[32m+[m		[32m} else if (sinalized-2 > 0 && obstacles.get(sinalized-2).back() <= car.back() && obstacles.get(sinalized-1).back() > car.front()+1) {[m
+[32m+[m			[32mspeedDown(agName);[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m			[32mSystem.out.println("3");[m
+[32m+[m		[32m} else if (sinalized-1 > 0 && obstacles.get(sinalized-1).back() <= car.back() && obstacles.get(sinalized).back() > car.front()+1) {[m
+[32m+[m			[32mspeedDown(agName);[m
+[32m+[m
+[32m+[m			[32mremoveOldCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32mcar.setX(car.getX() + 1);[m
+[32m+[m
+[32m+[m			[32mSystem.err.println("MOVING " + car.getX() + " " + car.getY());[m
+[32m+[m
+[32m+[m			[32maddNewCarPosition(agName);[m
+[32m+[m
+[32m+[m			[32msendMessageSimulator();[m
+[32m+[m			[32mSystem.out.println("4");[m
+[32m+[m		[32m} else {[m[41m [m
+[32m+[m			[32mPredicate change_lane = new Predicate("change_lane");[m
+[32m+[m			[32maddPercept(agName, change_lane);[m
+[32m+[m			[32mSystem.out.println("change_lane add");[m
+[32m+[m		[32m}[m[41m	[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32m/*Atualiza as informações do carro no simulador*/[m
+[32m+[m	[32mprivate void sendMessageSimulator() {[m
+[32m+[m		[32mif(simulate) {[m
+[32m+[m			[32mtry {[m
+[32m+[m				[32mTimeUnit.MILLISECONDS.sleep(waitTimeLocation);[m
+[32m+[m			[32m} catch(Exception e) {[m
+[32m+[m				[32mSystem.err.println(e);[m
+[32m+[m			[32m}[m
+[32m+[m			[32mClient.sendMessage( Client.convertArray2String( new String[][m[41m [m
+[32m+[m					[32m{"carLocation", String.valueOf(car.getX()), String.valueOf(car.getY())} ) );[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+ [m
+[32m+[m[32m}[m
+\ No newline at end of file[m
+[1mdiff --git a/src/examples/autonomous_car/Coordinate.java b/src/examples/autonomous_car/Coordinate.java[m
+[1mindex 9d35b09..0e8d7fe 100644[m
+[1m--- a/src/examples/autonomous_car/Coordinate.java[m
+[1m+++ b/src/examples/autonomous_car/Coordinate.java[m
+[36m@@ -2,12 +2,30 @@[m [mpackage autonomous_car;[m
+ [m
+ public class Coordinate {[m
+ 	[m
+[32m+[m	[32m/*Posição no eixo x*/[m
+ 	private int x;[m
+[32m+[m[41m	[m
+[32m+[m	[32m/*Posição no eixo y*/[m
+ 	private int y;[m
+ 	[m
+[31m-	public Coordinate(int x, int y) {[m
+[31m-		this.x = x;[m
+[31m-		this.y = y;[m
+[32m+[m	[32m/*Comprimento do objeto*/[m
+[32m+[m	[32mprivate int length;[m[41m [m
+[32m+[m[41m	[m
+[32m+[m	[32m/*Largura do objeto*/[m
+[32m+[m	[32mprivate int width;[m
+[32m+[m[41m	[m
+[32m+[m	[32mpublic Coordinate() {[m
+[32m+[m[41m		[m
+[32m+[m	[32m}[m
+[32m+[m[41m	[m
+[32m+[m	[32m/*Retorna a posição da parte de trás do objeto*/[m
+[32m+[m	[32mpublic int back() {[m
+[32m+[m		[32mreturn x;[m
+[32m+[m	[32m}[m
+[32m+[m[41m	[m
+[32m+[m	[32m/*Retorna a posição da parte da frente do objeto*/[m
+[32m+[m	[32mpublic int front() {[m
+[32m+[m		[32mreturn x + length;[m
+ 	}[m
+ 	[m
+ 	public int getX() {[m
+[36m@@ -26,4 +44,20 @@[m [mpublic class Coordinate {[m
+ 		this.y = y;[m
+ 	}[m
+ [m
+[32m+[m	[32mpublic int getLength() {[m
+[32m+[m		[32mreturn length;[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mpublic void setLength(int length) {[m
+[32m+[m		[32mthis.length = length;[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mpublic int getWidth() {[m
+[32m+[m		[32mreturn width;[m
+[32m+[m	[32m}[m
+[32m+[m
+[32m+[m	[32mpublic void setWidth(int width) {[m
+[32m+[m		[32mthis.width = width;[m
+[32m+[m	[32m}[m
+[32m+[m
+ }[m
+[1mdiff --git a/src/examples/autonomous_car/Simulator.java b/src/examples/autonomous_car/Simulator.java[m
+[1mindex a94b2de..1e445db 100644[m
+[1m--- a/src/examples/autonomous_car/Simulator.java[m
+[1m+++ b/src/examples/autonomous_car/Simulator.java[m
+[36m@@ -21,6 +21,9 @@[m [mimport javax.swing.WindowConstants;[m
+ import javax.swing.event.ChangeEvent;[m
+ import javax.swing.event.ChangeListener;[m
+ [m
+[32m+[m[32mimport autonomous_car_2.Car;[m
+[32m+[m[32mimport autonomous_car_2.Coordinate;[m
+[32m+[m
+ import java.awt.BorderLayout;[m
+ import java.awt.Color;[m
+ import java.awt.Dimension;[m
+[36m@@ -41,10 +44,10 @@[m [mpublic class Simulator extends JFrame{[m
+    private int width = d.width;[m
+    private int height = d.height;[m
+ [m
+[31m-   private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.[m
+[32m+[m[32m   private Coordinate car = new Car(5, 2, 1, 0, 0); // Coordenada onde o agente está localizado.[m
+    private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();[m
+ [m
+[31m-   private int fps = 1000 / 2;[m
+[32m+[m[32m   private int fps = 1000 / 24;[m
+    private boolean animate = true;[m
+    private byte zoom = 2;[m
+    private boolean run = true;[m
+[1mdiff --git a/src/examples/autonomous_car/autonomous_car.gwen b/src/examples/autonomous_car/autonomous_car.gwen[m
+[1mindex 4670a32..bc8944b 100644[m
+[1m--- a/src/examples/autonomous_car/autonomous_car.gwen[m
+[1m+++ b/src/examples/autonomous_car/autonomous_car.gwen[m
+[36m@@ -3,64 +3,512 @@[m [mGWENDOLEN[m
+ :name: car[m
+ [m
+ :Initial Beliefs:[m
+[31m-at(0,0)[m
+ [m
+ :Initial Goals:[m
+ [m
+ :Plans:[m
+ +start : {True} <- [m
+[31m-	print(start),  [m
+[31m-	+!sensor_enable [perform];[m
+[32m+[m	[32mprint(start),[m
+[32m+[m	[32mprint(gps_enable),[m
+[32m+[m	[32mgps_enable,[m
+[32m+[m	[32mprint(sensor_enable),[m[41m [m
+[32m+[m	[32msensor_enable,[m
+[32m+[m	[32mprint(check_env),[m
+[32m+[m	[32mcheck_env,[m[41m  [m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m[41m	[m
+[32m+[m[32m/************************************************************* 2 LANES NA MESMA DIREÇÃO *************************************************************/[m
+ [m
+[32m+[m[32m        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/[m[41m                          [m
+ [m
+[31m-+!sensor_enable [perform] : {True} <- [m
+[31m-	print(sensor_enable), [m
+[31m-	+sensor_enable,[m
+[31m-	check_env, [m
+[31m-	print(check_env), [m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m  [m
+[32m+[m						[32m ~B obs1Close,[m[41m [m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m
+[32m+[m						[32m ~B stop,[m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  B velocity(V),[m[41m [m
+[32m+[m						[32m  B maxVelocity(MV),[m
+[32m+[m						[32m  V < MV} <-[m[41m						 [m
+[32m+[m	[32m+accelerate;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m[41m [m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m   [m
+[32m+[m						[32m ~B obs1Close,[m[41m [m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m
+[32m+[m						[32m ~B stop,[m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  B velocity(V),[m[41m [m
+[32m+[m						[32m  B maxVelocity(MV),[m
+[32m+[m						[32m  V == MV} <-[m[41m						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        /************************************************** COM 1 OBSTÁCULO PRÓXIMO *********************************************************/[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m[41m  [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  Y1 == Y} <-[m[41m						  [m
+[32m+[m	[32mprint(around1),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+ 	+!go_forward [perform];[m
+ [m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m[41m  [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m  B change_lane,[m
+[32m+[m						[32m  B in_lane0,[m
+[32m+[m						[32m  Y1 == Y} <-[m
+[32m+[m	[32mprint(go_right1),[m[41m						  						  [m
+[32m+[m	[32mgo_right,[m
+[32m+[m	[32mremove_change_lane,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+ [m
+[31m-+!go_forward [perform] : {~B obs1(X,Y), ~B obs2(C,D)} <- [m
+[31m-	run, [m
+[31m-	*going_forward, [m
+[31m-	check_env, [m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m[41m  [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m  B change_lane,[m
+[32m+[m						[32m  B in_lane1,[m
+[32m+[m						[32m  Y1 == Y} <-[m
+[32m+[m	[32mprint(go_left1),[m[41m						  						  [m
+[32m+[m	[32mgo_left,[m
+[32m+[m	[32mremove_change_lane,[m
+[32m+[m	[32mcheck_env,[m
+ 	+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m ~B change_lane} <-[m[41m						  [m
+[32m+[m	[32mprint(run1),[m[41m						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m[41m  [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  Y2 == Y} <-[m[41m						  [m
+[32m+[m	[32mprint(around2),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m[41m  [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m  B change_lane,[m
+[32m+[m						[32m  B in_lane0,[m
+[32m+[m						[32m  Y2 == Y} <-[m
+[32m+[m	[32mprint(go_right2),[m[41m						  						  [m
+[32m+[m	[32mgo_right,[m
+[32m+[m	[32mremove_change_lane,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m[41m  [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m  B change_lane,[m
+[32m+[m						[32m  B in_lane1,[m
+[32m+[m						[32m  Y2 == Y} <-[m
+[32m+[m	[32mprint(go_left2),[m[41m						  						  [m
+[32m+[m	[32mgo_left,[m
+[32m+[m	[32mremove_change_lane,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs3Close,[m[41m						  [m
+[32m+[m						[32m ~B change_lane} <-[m[41m						  [m
+[32m+[m	[32mprint(run2),[m[41m						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m  [m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m[41m						  [m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  Y3 == Y} <-[m[41m						  [m
+[32m+[m	[32mprint(around3),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m  [m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m[41m						  [m
+[32m+[m						[32m  B change_lane,[m
+[32m+[m						[32m  B in_lane0,[m
+[32m+[m						[32m  Y3 == Y} <-[m
+[32m+[m	[32mprint(go_right3),[m[41m						  						  [m
+[32m+[m	[32mgo_right,[m
+[32m+[m	[32mremove_change_lane,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m  [m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m[41m						  [m
+[32m+[m						[32m  B change_lane,[m
+[32m+[m						[32m  B in_lane1,[m
+[32m+[m						[32m  Y3 == Y} <-[m
+[32m+[m	[32mprint(go_left3),[m[41m						  						  [m
+[32m+[m	[32mgo_left,[m
+[32m+[m	[32mremove_change_lane,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m [m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B obs2Close,[m[41m						  [m
+[32m+[m						[32m ~B change_lane} <-[m[41m						  [m
+[32m+[m	[32mprint(run3),[m[41m						  [m
+[32m+[m	[32m+run;[m
+ 	[m
+[31m-+!go_forward [perform] : {B obs1(X,Y), B obs2(C,D)} <- [m
+[31m-	print(stop), [m
+[31m-	stop,[m
+[31m-	+go_forward;[m
+[31m-	[m
+[31m-+!go_forward [perform] : {B obs1(X,Y), ~B obs2(C,D), B at(E,F), Y == F, F == 43} <- [m
+[31m-	print(go_left1), [m
+[31m-	go_left,  [m
+[31m-	*going_forward,[m
+[32m+[m[32m        /**************************************************** COM 2 OBSTÁCULOS PRÓXIMOS ****************************************************/[m[41m	[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B obs1(X1, Y1),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  Y1 == Y2} <-[m[41m						  [m
+[32m+[m	[32mprint(around4),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m
+[32m+[m						[32m  B change_lane,[m[41m [m
+[32m+[m						[32m  Y1 == Y2,[m[41m [m
+[32m+[m						[32m  Y < Y1} <-[m[41m	[m
+[32m+[m	[32mremove_change_lane,[m[41m						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m
+[32m+[m						[32m  B change_lane,[m[41m [m
+[32m+[m						[32m  Y1 == Y2,[m[41m [m
+[32m+[m						[32m  Y1 < Y} <-[m
+[32m+[m	[32mremove_change_lane,[m[41m						  						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs3Close,[m
+[32m+[m						[32m ~B change_lane} <-[m[41m						  [m
+[32m+[m	[32mprint(around5),[m
+[32m+[m	[32maround,[m
+ 	check_env,[m
+ 	+!go_forward [perform];[m
+ 	[m
+[31m-+!go_forward [perform] : {B obs1(X,Y), ~B obs2(C,D), B at(E,F), Y == F, F == 6} <- [m
+[31m-	print(go_right1), [m
+[31m-	go_right,  [m
+[31m-	*going_forward, [m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m ~B obs3Close} <-[m[41m						  [m
+[32m+[m	[32m+stop;[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B obs1(X1, Y1),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  Y1 == Y3} <-[m[41m						  [m
+[32m+[m	[32mprint(around4),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m  B change_lane,[m[41m [m
+[32m+[m						[32m  Y1 == Y3,[m[41m [m
+[32m+[m						[32m  Y < Y1} <-[m[41m						  [m
+[32m+[m	[32mremove_change_lane,[m[41m	[m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs1(X1, Y1),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m  B change_lane,[m[41m [m
+[32m+[m						[32m  Y1 == Y3,[m[41m [m
+[32m+[m						[32m  Y1 < Y} <-[m
+[32m+[m	[32mremove_change_lane,[m[41m						  						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs2Close,[m
+[32m+[m						[32m ~B change_lane} <-[m[41m						  [m
+[32m+[m	[32mprint(around5),[m
+[32m+[m	[32maround,[m
+ 	check_env,[m
+ 	+!go_forward [perform];[m
+ 	[m
+[31m-+!go_forward [perform] : {B obs2(C,D), ~B obs1(X,Y), B at(E,F), D == F, F == 43} <- [m
+[31m-	print(go_left2), [m
+[31m-	go_left, [m
+[31m-	*going_forward, [m
+[31m-	check_env, [m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs2Close} <-[m[41m						  [m
+[32m+[m	[32m+stop;[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B obs2(X2, Y2),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m					    [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m ~B change_lane,[m
+[32m+[m						[32m  Y2 == Y3} <-[m[41m						  [m
+[32m+[m	[32mprint(around4),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m					    [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m  B change_lane,[m[41m [m
+[32m+[m						[32m  Y2 == Y3,[m[41m [m
+[32m+[m						[32m  Y < Y2} <-[m[41m						  [m
+[32m+[m	[32mremove_change_lane,[m[41m	[m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m
+[32m+[m						[32m  B at(X, Y),[m
+[32m+[m						[32m  B obs2(X2, Y2),[m
+[32m+[m						[32m  B obs3(X3, Y3),[m[41m					    [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close,[m
+[32m+[m						[32m  B change_lane,[m[41m [m
+[32m+[m						[32m  Y2 == Y3,[m[41m [m
+[32m+[m						[32m  Y2 < Y} <-[m
+[32m+[m	[32mremove_change_lane,[m[41m						  						  [m
+[32m+[m	[32m+run;[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B ob1Close,[m
+[32m+[m						[32m ~B change_lane} <-[m[41m						  [m
+[32m+[m	[32mprint(around5),[m
+[32m+[m	[32maround,[m
+[32m+[m	[32mcheck_env,[m
+ 	+!go_forward [perform];[m
+ 	[m
+[31m-+!go_forward [perform] : {B obs2(C,D), ~B obs1(X,Y), B at(E,F), D == F, F == 6} <- [m
+[31m-	print(go_right2), [m
+[31m-	go_right, [m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m  B obs3Close,[m
+[32m+[m						[32m ~B obs1Close} <-[m[41m						  [m
+[32m+[m	[32m+stop;[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m[41m	[m
+[32m+[m[32m        /**************************************************** COM 3 OBSTÁCULOS PRÓXIMOS ****************************************************/[m[41m	[m
+[32m+[m
+[32m+[m[32m+!go_forward [perform] : {B lane0(D0),[m[41m [m
+[32m+[m						[32m  B lane1(D1),[m
+[32m+[m						[32m  0 < D0,[m
+[32m+[m						[32m  0 < D1,[m[41m					    [m
+[32m+[m						[32m  B obs1Close,[m
+[32m+[m						[32m  B obs2Close,[m
+[32m+[m						[32m  B obs3Close} <-[m[41m						  [m
+[32m+[m	[32m+stop;[m
+[32m+[m
+[32m+[m[32m/****************************************************************************************************************************************************/[m
+[32m+[m
+[32m+[m[32m+accelerate : {True} <-[m
+[32m+[m	[32mprint(accelerate),[m
+[32m+[m	[32maccelerate,[m[41m [m
+[32m+[m	[32m*going_forward,[m
+[32m+[m	[32m-accelerate,[m
+[32m+[m	[32mcheck_env,[m
+[32m+[m	[32m+!go_forward [perform];[m[41m [m
+[32m+[m
+[32m+[m[32m+decelerate : {True} <-[m
+[32m+[m	[32mprint(decelerate),[m
+[32m+[m	[32mdecelerate,[m[41m [m
+ 	*going_forward,[m
+[31m-	 check_env, [m
+[32m+[m	[32m-decelerate,[m[41m [m
+[32m+[m	[32mcheck_env,[m
+ 	+!go_forward [perform];[m
+[31m-	[m
+[31m-+!go_forward [perform] : {B stopped} <- [m
+[32m+[m
+[32m+[m[32m+run : {True} <-[m
+[32m+[m	[32mrun,[m[41m [m
+[32m+[m	[32m*going_forward,[m[41m [m
+[32m+[m	[32m-run,[m
+[32m+[m	[32mcheck_env,[m[41m [m
+[32m+[m	[32m+!go_forward [perform];[m
+[32m+[m
+[32m+[m[32m+stop : {True} <-[m[41m				 [m
+[32m+[m	[32mprint(stop),[m[41m [m
+[32m+[m	[32mstop,[m
+ 	+go_forward;[m
+ [m
+[31m-+stopped : {True} <- print(END);[m
+\ No newline at end of file[m
+[32m+[m[32m+stopped : {True} <- print(END);[m

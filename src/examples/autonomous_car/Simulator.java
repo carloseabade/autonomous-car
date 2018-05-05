@@ -21,12 +21,18 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import autonomous_car_2.Car;
+import autonomous_car_2.Coordinate;
+import autonomous_car_2.Obstacle;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.util.ArrayList;
 
 public class Simulator extends JFrame{
@@ -41,11 +47,13 @@ public class Simulator extends JFrame{
    private int width = d.width;
    private int height = d.height;
 
-   private Coordinate car = new Coordinate(0, 0); // Coordenada onde o agente está localizado.
+   private Coordinate car = new Car(5, 2, 1, 0, 0); // Coordenada onde o agente está localizado.
    private ArrayList<Coordinate> obstacles = new ArrayList<Coordinate>();
 
-   private int fps = 1000 / 2;
-   private boolean animate = true;
+   private static DatagramSocket server;
+   
+   private int fps = 1000 / 24;
+   private boolean animate = false;
    private byte zoom = 2;
    private boolean run = true;
    
@@ -89,7 +97,10 @@ public class Simulator extends JFrame{
                    e.printStackTrace();
                }
                g.drawImage(bi_car, 0, (car.getY())*zoom, 50*zoom, 23*zoom, null);
-
+               
+               g.setColor(Color.decode("#000"));
+               g.drawString(String.valueOf(car.getY()), 20, 20);
+               
                // Draw sensor
                BufferedImage bi_sensor = null;
                try {
@@ -108,6 +119,7 @@ public class Simulator extends JFrame{
                }
                for(Coordinate c : obstacles) {
                    g.drawImage(bi_car, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
+                   g.drawString(String.valueOf(c.getX()), 20+obstacles.indexOf(c)+10, 20);
                }
            }
        };
@@ -217,18 +229,61 @@ public class Simulator extends JFrame{
        window.repaint();
    }
 
-   public void startAnimation() {
-	   while(run) {
-	       long nextUpdate = 0;
-		
-           while(animate) {
-               if(System.currentTimeMillis() >= nextUpdate) {
-                   window.repaint();
+/*
+* O método readReceivedMessage realiza o processamente da mensagem.
+* Por meio da interpretação da mensagem, é atualizado as variáveis do simulador para sua exibição gráfica.
+*
+* A mensagem recebida é do tipo String, onde cada argumento da mensagem é separado por ponto-e-vírgula (;).
+* O processamento da mensagem é feito da seguinte forma:
+* A mensagem é separada e tranformada em um array de String, messageArray,
+* onde a primeira posição identifica o tipo da mensagem, messageArray[0].
+* Para cada tipo de mensagem, uma atualização diferente é realizada. A identificação de cada mensagem é feito por meio de um switch().
+*/
 
-                   nextUpdate = System.currentTimeMillis() + fps;
-               }
-           }
-	   }
+  private void readReceivedMessage(String message) {
+
+  String[] messageArray = message.split(";");
+  String switchMessage = messageArray[0];
+
+  switch(switchMessage) {
+      case    "carLocation":
+          car.setX(Integer.parseInt(messageArray[1]));
+          car.setY(Integer.parseInt(messageArray[2]));
+          break;
+      case    "obsLocation":
+          obstacles.add(new Obstacle(5, 2, (Integer.parseInt(messageArray[1])), (Integer.parseInt(messageArray[2]))));
+          break;
+      default:
+          System.out.println("Erro");
+          System.out.println(messageArray[0]);
+      }
+  }
+
+
+   public void startAnimation() {
+      long nextUpdate = 0;
+
+      try {
+   	   server = new DatagramSocket(9999);
+          byte[] receive = new byte[1024];
+          DatagramPacket receivePacket = new DatagramPacket(receive, receive.length); // Pacote Recebido
+
+          while(animate) {
+              server.receive(receivePacket);
+
+              String sentence = new String(receivePacket.getData());
+              this.readReceivedMessage(sentence);
+
+              if(System.currentTimeMillis() >= nextUpdate) {
+                  window.repaint();
+
+                  nextUpdate = System.currentTimeMillis() + fps;
+              }
+          }
+      }
+      catch (Exception e) {
+          System.out.println(e);
+      }
    }
 
    public static void main(String args[]){
@@ -239,7 +294,6 @@ public class Simulator extends JFrame{
    public byte getObstaclesQuantity() {
 	   return obstaclesQuantity;
    }
-
    
    public boolean getAnimate() {
 	   return animate;
