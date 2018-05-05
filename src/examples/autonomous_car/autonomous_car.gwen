@@ -78,7 +78,7 @@ GWENDOLEN
 						 ~B obs2Close,
 						 ~B obs3Close,						  
 						  B change_lane,
-						  B in_lane0,
+						  B in_lane1,
 						  Y1 == Y} <-
 	print(go_right1),						  						  
 	go_right,
@@ -96,7 +96,7 @@ GWENDOLEN
 						 ~B obs2Close,
 						 ~B obs3Close,						  
 						  B change_lane,
-						  B in_lane1,
+						  B in_lane2,
 						  Y1 == Y} <-
 	print(go_left1),						  						  
 	go_left,
@@ -141,7 +141,7 @@ GWENDOLEN
 						 ~B obs1Close,
 						 ~B obs3Close,						  
 						  B change_lane,
-						  B in_lane0,
+						  B in_lane1,
 						  Y2 == Y} <-
 	print(go_right2),						  						  
 	go_right,
@@ -159,7 +159,7 @@ GWENDOLEN
 						 ~B obs1Close,
 						 ~B obs3Close,						  
 						  B change_lane,
-						  B in_lane1,
+						  B in_lane2,
 						  Y2 == Y} <-
 	print(go_left2),						  						  
 	go_left,
@@ -204,7 +204,7 @@ GWENDOLEN
 						 ~B obs1Close,
 						 ~B obs2Close,						  
 						  B change_lane,
-						  B in_lane0,
+						  B in_lane1,
 						  Y3 == Y} <-
 	print(go_right3),						  						  
 	go_right,
@@ -222,7 +222,7 @@ GWENDOLEN
 						 ~B obs1Close,
 						 ~B obs2Close,						  
 						  B change_lane,
-						  B in_lane1,
+						  B in_lane2,
 						  Y3 == Y} <-
 	print(go_left3),						  						  
 	go_left,

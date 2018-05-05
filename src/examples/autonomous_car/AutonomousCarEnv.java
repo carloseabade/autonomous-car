@@ -10,6 +10,7 @@ import ail.syntax.Predicate;
 import ail.syntax.Unifier;
 import ail.syntax.VarTerm;
 import ail.util.AILexception;
+import autonomous_car_2.Client;
 
 public class AutonomousCarEnv extends DefaultEnvironment{
 
@@ -25,15 +26,15 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 	/*Lista que armazena as as informações de todos os obstáculos*/
 	private ArrayList<Obstacle> obstacles;
+	
+	/*Classe que armazena as posições de cada pista*/
+	private Road road;
 
 	/*Controle dos obstáculos encontrados, analizados, sinalizados e ultrapassados*/
 	private int foundObstacle;
 	private int analizedObstacle;
 	private int sinalized;
-	private int overpastObstacle;
-
-	/*Determina se o ambiente irá enviar as mensagens para o simulador*/
-	private boolean simulate; 
+	private int overpastObstacle; 
 
 	/*Controle para nao enviar obstaculos mais de uma vez para o simulador*/
 	private boolean notSend;
@@ -58,16 +59,16 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	@Override
 	public void setMAS(MAS m) {
 		super.setMAS(m);
-		
-//		while(!(simulator.getAnimate())) {}
 
-		this.simulate = true;
 		this.notSend = false;
-		this.waitTimeLocation = 10000; //10 seg == 10000 milisegundos 
+		this.waitTimeLocation = 1000; //1 seg == 1000 milisegundos 
 		this.timeControl = 0;
 
+		/*Tamanho da lane e Posições referente ao meio da pista das pistas 1, 2, 3, 4 respectivamente*/
+		this.road = new Road(36, 117, 80, 43, 6);
+
 		/*Inicia o carro na ordem: length, width, velocity, ultrasonicSensor, wideSensor, x, y*/
-		this.car = new Car(5, 2, 0, 0, 6);
+		this.car = new Car(50, 23, 0, 0, this.road.getLane1Pos());
 
 		this.nLanes = 2;
 
@@ -263,47 +264,38 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		if (!notSend) {
 			int i = 1;
 
-			Obstacle aux = new Obstacle(5, 2, (50 + (int)(Math.random() * 100 + 1)), getRoad((int)(Math.random() * 4 + 1)));
+			Obstacle aux = new Obstacle(50, 20, (50 + (int)(Math.random() * 100 + 1)), getRoad((int)(Math.random() * nLanes + 1)));
 
 			obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
 
 			while (i < nObstacles) {
 				aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 100 + 1));
-				aux.setY(getRoad((int)(Math.random() * 4 + 1)));
+				aux.setY(getRoad((int)(Math.random() * nLanes + 1)));
 
 				obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
 
 				i++;
 			}
 			System.out.println("Environment obstacles:");
-
-
+			
 			i = 0;
-
-			if(simulate) {
-				while (i < nObstacles) {
-					Client.sendMessage( Client.convertArray2String( new String[] 
-							{"obsLocation", String.valueOf(obstacles.get(i).getX()), String.valueOf(obstacles.get(i).getY())} ) );
-					System.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
-					/*try {
-						TimeUnit.MILLISECONDS.sleep(100);
-					} catch(Exception e) {
-						System.err.println(e);
-					}*/
-
-					i++;
-				}
+			while (i < nObstacles) {
+				System.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
+				i++;
 			}
+
+			simulator.setObstacles(obstacles);
+			
 			notSend = true;
 		}
 	}
 	
    private int getRoad(int roadNumber) {
        switch(roadNumber) {
-           case 1: return 6;
-           case 2: return 43;
-           case 3: return 80;
-           case 4: return 117;
+           case 1: return 117;
+           case 2: return 80;
+           case 3: return 43;
+           case 4: return 6;
        }
 	return -1;
    }
@@ -380,18 +372,18 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private void checkEnvironment(String agName) {
 
 		/*Informa a lane que o carro se encontra*/
-		if(car.getY() == 0) {
+		if(car.getY() > road.getLane1Bottom() && car.getY() < road.getLane1Top()) {
+			Predicate in_lane2 = new Predicate("in_lane2");
+			removePercept(agName, in_lane2);
+
+			Predicate in_lane1 = new Predicate("in_lane1");
+			addPercept(agName, in_lane1);
+		} else if (car.getY() > road.getLane2Bottom() && car.getY() < road.getLane2Top()) {
 			Predicate in_lane1 = new Predicate("in_lane1");
 			removePercept(agName, in_lane1);
 
-			Predicate in_lane0 = new Predicate("in_lane0");
-			addPercept(agName, in_lane0);
-		} else if (car.getY() == 1) {
-			Predicate in_lane0 = new Predicate("in_lane0");
-			removePercept(agName, in_lane0);
-
-			Predicate in_lane1 = new Predicate("in_lane1");
-			addPercept(agName, in_lane1);			
+			Predicate in_lane2 = new Predicate("in_lane2");
+			addPercept(agName, in_lane2);			
 		}
 
 		/*Encontra os obstáculos que estão dentro do alcance do WideSensor*/
@@ -618,15 +610,12 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 	/*Atualiza as informações do carro no simulador*/
 	private void sendMessageSimulator() {
-		if(simulate) {
-			try {
-				TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
-			} catch(Exception e) {
-				System.err.println(e);
-			}
-			Client.sendMessage( Client.convertArray2String( new String[] 
-					{"carLocation", String.valueOf(car.getX()), String.valueOf(car.getY())} ) );
+		try {
+			TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
+		} catch(Exception e) {
+			System.err.println(e);
 		}
+		simulator.setCarLocation(car);
 	}
 
 }
