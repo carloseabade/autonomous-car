@@ -54,11 +54,13 @@ public class AutonomousCarEnv extends DefaultEnvironment{
        }).start();
 	}
 
-	
+	boolean a = true;
 	/*Inicia informações do ambiente*/
 	@Override
 	public void setMAS(MAS m) {
 		super.setMAS(m);
+		
+		while(simulator.getNotStart()) {System.out.println("Stopped");}
 
 		this.notSend = false;
 		this.waitTimeLocation = 1000; //1 seg == 1000 milisegundos 

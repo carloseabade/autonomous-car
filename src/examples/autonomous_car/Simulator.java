@@ -46,6 +46,7 @@ public class Simulator extends JFrame{
 
    private int fps = 1000 / 24;
    private boolean animate = true;
+   private boolean notStart = true;
    private byte zoom = 2;
    private boolean run = true;
    
@@ -90,7 +91,7 @@ public class Simulator extends JFrame{
                }
                g.drawImage(bi_car, 0, (car.getY())*zoom, 50*zoom, 23*zoom, null);
                
-               g.setColor(Color.decode("#fff"));
+               g.setColor(Color.decode("#ff0000"));
                g.drawString(String.valueOf(car.getX()), 20, 20);
 
                // Draw sensor
@@ -200,7 +201,7 @@ public class Simulator extends JFrame{
        jB_start.addActionListener(new ActionListener() {
     	   @Override
     	   public void actionPerformed(ActionEvent actionEvent) {
-    		   animate = true;
+    		   notStart = false;
     	   }
        });
        simulatorSettings.add(jB_start);
@@ -243,6 +244,10 @@ public class Simulator extends JFrame{
    
    public boolean getAnimate() {
 	   return animate;
+   }
+   
+   public boolean getNotStart() {
+	   return notStart;
    }
    
    public void setObstacles(ArrayList<Obstacle> obstacles2) {
