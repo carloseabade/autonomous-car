@@ -58,7 +58,7 @@ public class Car extends Coordinate{
 	public int getMaxVelocity() {
 		return maxVelocity;
 	}
-
+	
 	public void setMaxVelocity(int maxVelocity) {
 		this.maxVelocity = maxVelocity;
 	}
@@ -71,5 +71,7 @@ public class Car extends Coordinate{
 		this.acceleration = acceleration;
 	}
 	
-	
+	public int getFront() {
+		return getLength();
+	}
 }

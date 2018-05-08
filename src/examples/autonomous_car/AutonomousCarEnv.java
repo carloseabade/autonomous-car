@@ -56,7 +56,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		super.setMAS(m);
 		
 		while(simulator.getNotStart()) {System.out.println("Stopped");}
-
+		
 		this.waitTimeLocation = 1000; //1 seg == 1000 milisegundos 
 		this.timeControl = 0;
 

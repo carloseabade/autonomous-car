@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -14,6 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -22,8 +24,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +51,7 @@ public class Simulator extends JFrame{
    private int fps = 1000 / 24;
    private boolean animate = true;
    private boolean notStart = true;
-   private byte zoom = 2;
+   private byte zoom = 1;
    private boolean run = true;
    
    private byte lanesQuantity = 2;
@@ -59,7 +63,10 @@ public class Simulator extends JFrame{
    private double pixelsPerMeter = 30.77338479437423;
    
    Simulator() {
-       window = new JPanel() {
+	   window = new JPanel();
+       window.setLayout(new BorderLayout());
+       
+       JPanel drawing = new JPanel() {
            @Override
            public void paintComponent(Graphics g) {
         	   g.setColor(Color.decode("#fdfdfd"));
@@ -102,6 +109,15 @@ public class Simulator extends JFrame{
                    e.printStackTrace();
                }
                g.drawImage(bi_sensor, -40*zoom, (car.getY()-40)*zoom, 130*zoom, 103*zoom, null);
+               
+               // Draw sensor wide
+               BufferedImage bi_sensor_wide = null;
+               try {
+            	   bi_sensor_wide = ImageIO.read(new File("./res/img/sensor-wide.png"));
+               } catch (IOException e) {
+                   e.printStackTrace();
+               }
+               g.drawImage(bi_sensor_wide, 30*zoom, (car.getY()-519)*zoom, 600*zoom, 1060*zoom, null);
 
                // Draw obstacles
                BufferedImage bi_stone = null;
@@ -111,58 +127,40 @@ public class Simulator extends JFrame{
                    e.printStackTrace();
                }
                for(Obstacle c : obstacles) {
-                   g.drawImage(bi_car, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
+                   g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
                }
            }
        };
        simulatorSettings = new JPanel();
        simulatorSettings.setBorder(BorderFactory.createTitledBorder("Simulator Configuration:"));
-       simulatorSettings.setLayout(new GridLayout(2,0));
+       simulatorSettings.setLayout(new BoxLayout(simulatorSettings, BoxLayout.PAGE_AXIS));
        
        jL_lanesQuantity = new JLabel("Lanes quantity:");
        jS_lanesQuantity = new JSlider();
-       jTF_lanesQuantity = new JTextField();
+       jS_lanesQuantity.setPaintLabels(true);
        jS_lanesQuantity.setMaximum(4);
        jS_lanesQuantity.setValue(lanesQuantity);
        jS_lanesQuantity.setMinimum(1);
        jS_lanesQuantity.setMajorTickSpacing(1);
        jS_lanesQuantity.setPaintTicks(true);
-       jS_lanesQuantity.addChangeListener(new ChangeListener() {			
-			@Override
-			public void stateChanged(ChangeEvent e) {
-	    	       jTF_lanesQuantity.setText(String.valueOf(jS_lanesQuantity.getValue())+" lanes");
-			}
-		});
-       jTF_lanesQuantity.setEditable(false);
-       jTF_lanesQuantity.setText(String.valueOf(jS_lanesQuantity.getValue())+" lanes");
        simulatorSettings.add(jL_lanesQuantity);
        simulatorSettings.add(jS_lanesQuantity);
-       simulatorSettings.add(jTF_lanesQuantity);
-       
+
        jL_obstaclesQuantity = new JLabel("Obstacles quantity:");
        jS_obstaclesQuantity = new JSlider();
-       jTF_obstaclesQuantity = new JTextField();
+//       jS_obstaclesQuantity.setPaintLabels(true);
        jS_obstaclesQuantity.setMaximum(50);
        jS_obstaclesQuantity.setValue(obstaclesQuantity);
        jS_obstaclesQuantity.setMinimum(0);
        jS_obstaclesQuantity.setMajorTickSpacing(1);
        jS_obstaclesQuantity.setPaintTicks(true);
-       jS_obstaclesQuantity.addChangeListener(new ChangeListener() {			
-			@Override
-			public void stateChanged(ChangeEvent e) {
-	    	       jTF_obstaclesQuantity.setText(String.valueOf(jS_obstaclesQuantity.getValue())+" obstacles");
-			}
-		});
-       jTF_obstaclesQuantity.setEditable(false);
-       jTF_obstaclesQuantity.setText(String.valueOf(jS_obstaclesQuantity.getValue())+" obstacles");
        simulatorSettings.add(jL_obstaclesQuantity);
        simulatorSettings.add(jS_obstaclesQuantity);
-       simulatorSettings.add(jTF_obstaclesQuantity);
               
        jL_zoom = new JLabel("Zoom:");
        jS_zoom = new JSlider();
-       jTF_zoom = new JTextField();
-       jS_zoom.setMaximum(10);
+       jS_zoom.setPaintLabels(true);
+       jS_zoom.setMaximum(5);
        jS_zoom.setValue(zoom);
        jS_zoom.setMinimum(1);
        jS_zoom.setMajorTickSpacing(1);
@@ -170,22 +168,13 @@ public class Simulator extends JFrame{
        jS_zoom.addChangeListener(new ChangeListener() {			
 			@Override
 			public void stateChanged(ChangeEvent e) {
-	    	       jTF_zoom.setText(String.valueOf(jS_zoom.getValue())+" proportion");
 	    		   zoom = (byte) jS_zoom.getValue();
 	    		   window.repaint();
 			}
 		});
-       jTF_zoom.setEditable(false);
-       jTF_zoom.setText(String.valueOf(jS_zoom.getValue())+" proportion");
        simulatorSettings.add(jL_zoom);
        simulatorSettings.add(jS_zoom);
-       simulatorSettings.add(jTF_zoom);
 
-       jL_autoSteerTechnique = new JLabel("Auto steer technique:");
-       jCB_autoSteerTechnique = new JComboBox<String>(new DefaultComboBoxModel<>(new String[] {"Tecnique 1","Tecnique 2","Tecnique 3"}));
-       simulatorSettings.add(jL_autoSteerTechnique);
-       simulatorSettings.add(jCB_autoSteerTechnique);
-       
        jB_apply = new JButton("Apply");
        jB_apply.addActionListener(new ActionListener() {
     	   @Override
@@ -205,9 +194,25 @@ public class Simulator extends JFrame{
     	   }
        });
        simulatorSettings.add(jB_start);
+       
+       jB_close = new JButton("Close");
+       jB_close.addActionListener(new ActionListener() {
+    	   @Override
+    	   public void actionPerformed(ActionEvent actionEvent) {
+    		   int result = JOptionPane.showConfirmDialog(window, "Do you want to close properties window?");
+    		   if(result == 0) {
+    			   BorderLayout bl = (BorderLayout) window.getLayout();
+    			   window.remove(bl.getLayoutComponent(BorderLayout.EAST));
+    			   window.repaint();
+    		   }
+    	   }
+       });
+       simulatorSettings.add(jB_close);
 
-       window.setLayout(new BorderLayout());
-       window.add(simulatorSettings, BorderLayout.SOUTH);
+       add(window);
+       
+       window.add(drawing, BorderLayout.CENTER);
+       window.add(simulatorSettings, BorderLayout.EAST);
 
        getContentPane().add(window);
        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -250,6 +255,10 @@ public class Simulator extends JFrame{
 	   return notStart;
    }
    
+   public void setNoStart(boolean noStart) {
+	   this.notStart = noStart;
+   }
+   
    public void setObstacles(ArrayList<Obstacle> obstacles2) {
 	   this.obstacles = obstacles2;
    }
@@ -261,17 +270,13 @@ public class Simulator extends JFrame{
    private JPanel simulatorSettings;
    private JLabel jL_lanesQuantity;
    private JSlider jS_lanesQuantity;
-   private JTextField jTF_lanesQuantity;
    private JLabel jL_obstaclesQuantity;
    private JSlider jS_obstaclesQuantity;
-   private JTextField jTF_obstaclesQuantity;
    private JLabel jL_zoom;
    private JSlider jS_zoom;
-   private JTextField jTF_zoom;
-   private JLabel jL_autoSteerTechnique;
-   private JComboBox<String> jCB_autoSteerTechnique;
    private JButton jB_apply;
    private JButton jB_start;
+   private JButton jB_close;
    
    private JMenu jM_File;
    private JMenu jM_Edit;
