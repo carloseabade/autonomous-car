@@ -67,6 +67,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 		/*Inicia o carro na ordem: length, width, velocity, ultrasonicSensor, wideSensor, x, y*/
 		this.car = new Car(50, 23, 0, 0, getRoad((int)(Math.random() * 2 + 1)));
+		/*30 m/s = 108 km/h --- * 10 por cada posição da matriz corresponder a 10cm*/
+		this.car.setMaxVelocity(30*10);
 		//this.car = new Car(50, 23, 0, 0, getRoad(1));
 
 		this.nObstacles = 20;
@@ -90,7 +92,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		if(act.getFunctor().equals("sensor_enable")) {
 
 			car.setUltrasonicSensor(40);
-			car.setWideSensor(300);
+			car.setWideSensor(600);
 
 			Predicate velocity = new Predicate("velocity");
 			velocity.addTerm(new NumberTermImpl(car.getVelocity()));
@@ -105,9 +107,6 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			at.addTerm(new NumberTermImpl(car.getX()));
 			at.addTerm(new NumberTermImpl(car.getY()));
 			addPercept(agName, at);
-
-			/*30 m/s = 108 km/h --- * 10 por cada posição da matriz corresponder a 10cm*/
-			car.setMaxVelocity(30*10);
 
 			Predicate maxVelocity = new Predicate("maxVelocity");
 			maxVelocity.addTerm(new NumberTermImpl(car.getMaxVelocity()));
