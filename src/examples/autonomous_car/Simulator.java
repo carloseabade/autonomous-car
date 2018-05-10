@@ -45,8 +45,9 @@ public class Simulator extends JFrame{
    private int width = d.width;
    private int height = d.height;
 
-   private Car car = new Car(5, 2, 1, 0, 0); // Coordenada onde o agente está localizado.
+   private Car car = new Car(50, 23, 1, 0, 117); // Coordenada onde o agente está localizado.
    private ArrayList<Obstacle> obstacles = new ArrayList<>();
+   TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
 
    private int fps = 1000 / 24;
    private boolean animate = true;
@@ -129,6 +130,21 @@ public class Simulator extends JFrame{
                for(Obstacle c : obstacles) {
                    g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
                }
+               
+               // Draw traffic light
+               BufferedImage bi_traffic_light = null;
+               try {
+            	   if(trafficLight.isGreen()) {
+                	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-green.png"));
+            	   } else if(trafficLight.isYellow()) {
+                	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-yellow.png"));
+            	   } else if(trafficLight.isRed()) {
+                	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-red.png"));
+            	   }
+               } catch (IOException e) {
+                   e.printStackTrace();
+               }
+               g.drawImage(bi_traffic_light, (trafficLight.getX()-car.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
            }
        };
        simulatorSettings = new JPanel();
@@ -257,6 +273,15 @@ public class Simulator extends JFrame{
    
    public void setNoStart(boolean noStart) {
 	   this.notStart = noStart;
+   }
+
+   public void setTrafficLight(TrafficLight trafficLight) {
+	   this.trafficLight = trafficLight;
+	   this.trafficLight.start();
+   }
+   
+   public TrafficLight getTrafficLight() {
+	   return this.trafficLight;
    }
    
    public void setObstacles(ArrayList<Obstacle> obstacles2) {

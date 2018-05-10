@@ -17,36 +17,49 @@ GWENDOLEN
 	check_env,  
 	+!go_forward [perform];
 	
+	
 /************************************************************* 2 LANES NA MESMA DIREÇÃO *************************************************************/
+        /**************************************** CASO TENHA UM SEMAFORO ****************************************/
 
-        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/                          
++!go_forward [perform] : {B lane1(D1), 
+						  B lane2(D2),
+						  0 < D1,
+						  0 < D2,
+						  B trafficLight(X1, Y1),
+						  B trafficLightClose} <-
+	print(aroundTrafficLight),
+	aroundTrafficLight,
+	check_env,
+	+!go_forward [perform];
 
-+!go_forward [perform] : {B lane1(D2), 
+        /**************************************** SEM OBSTÁCULOS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA ****************************************/
+
++!go_forward [perform] : {B lane1(D2),
 						  B lane2(D2),
 						  0 < D2,
-						  0 < D2,  
-						 ~B obs1Close, 
+						  0 < D2,
+						 ~B obs1Close,
 						 ~B obs2Close,
 						 ~B obs3Close,
 						 ~B stop,
 						 ~B change_lane,
-						  B velocity(V), 
+						  B velocity(V),
 						  B maxVelocity(MV),
-						  V < MV} <-						 
+						  V < MV} <-
 	+accelerate;
 
 +!go_forward [perform] : {B lane1(D2), 
 						  B lane2(D2), 
 						  0 < D2,
-						  0 < D2,   
-						 ~B obs1Close, 
+						  0 < D2,
+						 ~B obs1Close,
 						 ~B obs2Close,
 						 ~B obs3Close,
 						 ~B stop,
 						 ~B change_lane,
-						  B velocity(V), 
+						  B velocity(V),
 						  B maxVelocity(MV),
-						  V == MV} <-						  
+						  V == MV} <-
 	+run;
 
 
@@ -694,3 +707,26 @@ GWENDOLEN
 	+go_forward;
 
 +stopped : {True} <- print(END);
+
++wait : {B trafficLightRed} <-
+	print(waiting),
+	-wait,
+	aroundTrafficLight,
+	check_env, 
+	+!go_forward [perform];
+	
++wait : {B trafficLightYellow} <-
+	print(waiting),
+	-wait,
+	aroundTrafficLight,
+	check_env, 
+	+!go_forward [perform];
+	
++wait : {B trafficLightGreen} <-
+	-wait,
+	print(accelerate),
+	accelerate, 
+	*going_forward,
+	-accelerate,
+	check_env,
+	+!go_forward [perform];
