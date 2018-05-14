@@ -89,18 +89,18 @@ public class TrafficLight extends Coordinate implements Runnable{
 				if(this.isRed()) {
 					Thread.sleep(5000);
 					this.setRed(false);
-					this.setYellow(true);
-					this.setGreen(false);
+					this.setYellow(false);
+					this.setGreen(true);
 				} else if(this.isYellow()) {
 					Thread.sleep(2000);
 					this.setYellow(false);
-					this.setGreen(true);
-					this.setRed(false);
+					this.setGreen(false);
+					this.setRed(true);
 				} else if(this.isGreen()) {
 					Thread.sleep(5000);
 					this.setGreen(false);
-					this.setRed(true);
-					this.setYellow(false);
+					this.setRed(false);
+					this.setYellow(true);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
