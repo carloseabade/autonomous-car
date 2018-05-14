@@ -86,7 +86,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		this.sinalized = 0;
 		this.overpastObstacle = 0;
 
-		//initObstacle();
+		initObstacle();
 
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
@@ -283,7 +283,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
 
 		while (i < nObstacles) {
-			aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 151));
+			aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 501));
 			aux.setY(getRoad((int)(Math.random() * nLanes + 1)));
 
 			obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
@@ -607,10 +607,10 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		if (timeControl > 1) {
 			timeControl -=1;
 			waitTimeLocation = waitTimeLocation + (waitTimeLocation / timeControl);
-		} else if (timeControl == 1) {
+		} /*else if (timeControl == 1) {
 			waitTimeLocation = waitTimeLocation * car.getAcceleration();
 
-		}
+		}*/
 
 		addNewVelocity(agName);
 	}
