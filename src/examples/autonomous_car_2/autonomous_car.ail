@@ -1,6 +1,0 @@
-mas.file = /src/examples/autonomous_car_2/autonomous_car.gwen
-mas.builder = gwendolen.GwendolenMASBuilder
-
-env = autonomous_car_2.AutonomousCarEnv
-
-log.warning = ail.mas.DefaultEnvironment

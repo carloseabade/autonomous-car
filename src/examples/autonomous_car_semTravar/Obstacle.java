@@ -1,7 +1,5 @@
 package autonomous_car_semTravar;
 
-import autonomous_car.Coordinate;
-
 public class Obstacle extends Coordinate{
 	
 	private Boolean found = false;

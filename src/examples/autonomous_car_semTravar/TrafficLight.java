@@ -1,7 +1,5 @@
 package autonomous_car_semTravar;
 
-import javax.swing.JOptionPane;
-
 public class TrafficLight extends Coordinate implements Runnable{
 	
 	private Thread thread;
