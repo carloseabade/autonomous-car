@@ -1,7 +1,9 @@
 package autonomous_car;
 
-public class PedestrianValues {
+public class PedestrianValues{
 	
+	private int lenght;
+	private int width;
 	private int x;
 	private int y;
 	private boolean goingUp = false;
@@ -9,14 +11,18 @@ public class PedestrianValues {
 	private boolean waitingToGoDown = false;
 	private boolean waitingToGoUp = true;
 	
-	public PedestrianValues(int x, int y, boolean goingUp, boolean goingDown, boolean waitingToGoUp, boolean waitingToGoDown) {
-		this.x = x;
-		this.y = y;
+	public PedestrianValues(int lenght, int width, int x, int y, boolean goingUp, boolean goingDown, boolean waitingToGoUp, boolean waitingToGoDown) {
+		this.lenght = lenght;
+		this.width = width;
+		this.setX(x);
+		this.setY(y);
 		this.goingUp = goingUp;
 		this.goingDown = goingDown;
 		this.waitingToGoUp = waitingToGoUp;
 		this.waitingToGoUp = waitingToGoUp;
 	}
+	
+	
 
 	public synchronized int getY() {
 		return this.y;
@@ -64,7 +70,5 @@ public class PedestrianValues {
 
 	public synchronized void setWaitingToGoUp(boolean waitingToGoUp) {
 		this.waitingToGoUp = waitingToGoUp;
-	}
-	
-	
+	}	
 }

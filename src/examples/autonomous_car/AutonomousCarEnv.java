@@ -2,6 +2,9 @@ package autonomous_car;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JOptionPane;
+
 import ail.mas.DefaultEnvironment;
 import ail.mas.MAS;
 import ail.syntax.Action;
@@ -29,8 +32,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	/*Lista que armazena as as informações de todos os obstáculos*/
 	private ArrayList<Obstacle> obstacles;
 	/*Lista que armazena as as informações de todos as faixas de pedestre*/
-	private ArrayList<Crosswalk> crosswalks;
-
+	private Crosswalk crosswalk;
+	private Thread pedestrianThread;
+	private Pedestrian pedestrian;
+	private PedestrianValues pedestrianValues;
+	
 	/*Classe que armazena as posições de cada pista*/
 	private Road road;
 
@@ -48,11 +54,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 	/*Inicia simulador junto ao construtor do ambiente*/
 	public AutonomousCarEnv() {
-		pedestrianValues = new PedestrianValues(456+14, 74+72, false, false, true, false);
-		pedestrian = new Pedestrian(9, 5, 456+14, 74+72, pedestrianValues);
-		pedestrianThread = new Thread(pedestrian);
-		pedestrianThread.start();
-		simulator = new Simulator(pedestrianValues);
+		initVariables();
+		
 		new Thread(new Runnable() {
 			public void run() {
 				simulator.startAnimation();
@@ -60,9 +63,15 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		}).start();
 	}
 	
-	   Thread pedestrianThread;
-	   Pedestrian pedestrian;
-	   private PedestrianValues pedestrianValues;
+	public void initVariables() {
+		pedestrianValues = new PedestrianValues(9, 5, 470, 146, false, false, true, false);
+		pedestrian = new Pedestrian(pedestrianValues);
+		pedestrianThread = new Thread(pedestrian);
+		pedestrianThread.start();
+		simulator = new Simulator(pedestrianValues);
+		trafficLight = new TrafficLight(17, 67, 1000, 86);
+		crosswalk = new Crosswalk(36, 72, 470-14, 146-72);
+	}
 
 	/*Inicia informações do ambiente*/
 	@Override
@@ -83,17 +92,6 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		/*Inicia o carro na ordem: length, width, velocity, x, y*/
 		this.car = new Car(50, 23, 0, 0, getRoad((int)(Math.random() * 2 + 1)));
 		
-//		this.trafficLight = new TrafficLight(17, 67, 1000, 86);
-//		Thread trafficLightThread = new Thread(this.trafficLight);
-//		trafficLightThread.start();
-//		simulator.setTrafficLight(this.trafficLight);
-		
-//		this.crosswalks = new ArrayList<Crosswalk>();
-//		this.crosswalks.add(new Crosswalk(36, 72, 456, 74, true));
-//		Thread crosswalkThread = new Thread(this.crosswalks.get(0).getPedestrian());
-//		crosswalkThread.start();
-//		this.simulator.setCrosswalk(this.crosswalks);
-
 		this.nObstacles = simulator.getObstaclesQuantity();
 		System.out.println(this.nObstacles);
 		this.obstacles = new ArrayList<Obstacle>(nObstacles);
@@ -104,6 +102,12 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		this.overpastObstacle = 0;
 
 		initObstacle();
+		
+		simulator.setTrafficLight(trafficLight);
+		
+		simulator.setPedestrian(pedestrian);
+		
+		simulator.setCrosswalk(crosswalk);
 
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
