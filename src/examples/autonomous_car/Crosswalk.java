@@ -8,25 +8,25 @@ public class Crosswalk extends Coordinate{
 	private Boolean analized = false;
 	private Boolean sinalized = false;
 	private Boolean overPast = false;
-	private boolean hasPedestrian = false;
-	private Pedestrian pedestrian = null;
+//	private boolean hasPedestrian = false;
+//	private Pedestrian pedestrian = null;
 	
-	public Crosswalk(int length, int width, int x, int y, boolean hasPedestrian) {
+	public Crosswalk(int length, int width, int x, int y) {
 		super.setLength(length);
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
-		this.hasPedestrian = hasPedestrian;
-		if(hasPedestrian) {
-			this.addPedestrian();
-//			Thread pedestrianThread = new Thread(this.pedestrian);
-//			pedestrianThread.start();
-		}
+//		this.hasPedestrian = hasPedestrian;
+//		if(hasPedestrian) {
+//			this.addPedestrian();
+////			Thread pedestrianThread = new Thread(this.pedestrian);
+////			pedestrianThread.start();
+//		}
 	}
 	
-	private void addPedestrian() {
-		pedestrian = new Pedestrian(9, 5, this.getX()+14, this.getY()+72);
-	}
+//	private void addPedestrian() {
+//		pedestrian = new Pedestrian(9, 5, this.getX()+14, this.getY()+72);
+//	}
 
 	public Boolean getFound() {
 		return found;
@@ -60,12 +60,12 @@ public class Crosswalk extends Coordinate{
 		this.sinalized = sinalized;
 	}
 	
-	public Pedestrian getPedestrian() {
-		return this.pedestrian;
-	}
-	
-	public boolean hasPedestrian() {
-		return hasPedestrian;
-	}
+//	public Pedestrian getPedestrian() {
+//		return this.pedestrian;
+//	}
+//	
+//	public boolean hasPedestrian() {
+//		return hasPedestrian;
+//	}
 	
 }

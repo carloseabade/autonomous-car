@@ -43,6 +43,7 @@ public class Simulator extends JFrame{
    private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
    private ArrayList<Obstacle> obstacles = new ArrayList<>();
    private ArrayList<Crosswalk> crosswalks = new ArrayList<>();
+//   private Pedestrian pedestrian = new Pedestrian(9, 5, 456+14, 74+72);
    TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
    
    private static DatagramSocket server;
@@ -54,8 +55,14 @@ public class Simulator extends JFrame{
    
    private byte lanesQuantity = 2;
    private byte obstaclesQuantity = 4;
+
    
-   Simulator() {
+   private PedestrianValues pedestrianValues;
+   
+   Simulator(PedestrianValues pedestrianValues) {
+	   
+	   this.pedestrianValues = pedestrianValues;
+		
 	   window = new JPanel();
        window.setLayout(new BorderLayout());
        
@@ -92,21 +99,53 @@ public class Simulator extends JFrame{
         	   } catch (IOException e) {
         		   e.printStackTrace();
         	   }
-        	   // Draw pedestrian
-        	   BufferedImage bi_pedestrian = null;
-        	   try {
-        		   bi_pedestrian = ImageIO.read(new File("./res/img/pedestrian.png"));
-        	   } catch (IOException e) {
-        		   e.printStackTrace();
-        	   }
-               for(Crosswalk c : crosswalks) {
+        	   
+        	   /* COMECO PEDESTRE NOVO */
+        	   
+        	   
+		     // Draw traffic light
+		     BufferedImage bi_pedestrian = null;
+		     try {
+		       bi_pedestrian = ImageIO.read(new File("./res/img/pedestrian.png"));
+		     } catch (IOException e) {
+		         e.printStackTrace();
+		     }
+		     
+		  	   if(pedestrianValues.isGoingUp()) {
+		  		 pedestrianValues.setY(pedestrianValues.getY()-1);
+		  	   } else if(pedestrianValues.isGoingDown()) {
+		  		 pedestrianValues.setY(pedestrianValues.getY()+1);
+		  	   }
+//		  	   g.drawImage(bi_pedestrian, (pedestrianValues.getX()-car.getX())*zoom, pedestrianValues.getY()*zoom, 9*zoom, 5*zoom, null);
+		  	   g.drawImage(bi_pedestrian, (pedestrianValues.getX())*zoom, pedestrianValues.getY()*zoom, 9*zoom, 5*zoom, null);
+	   
+        	   
+        	   /* FIM PEDESTRE NOVO*/
+        	   
+		     
+//        	   // Draw pedestrian
+//        	   BufferedImage bi_pedestrian = null;
+//        	   try {
+//        		   bi_pedestrian = ImageIO.read(new File("./res/img/pedestrian.png"));
+//        	   } catch (IOException e) {
+//        		   e.printStackTrace();
+//        	   }
+//               for(Crosswalk c : crosswalks) {
 //            	   g.drawImage(bi_crosswalk, (c.getX()-car.getX())*zoom, c.getY()*zoom, 36*zoom, 72*zoom, null);
-            	   g.drawImage(bi_crosswalk, (c.getX())*zoom, c.getY()*zoom, 36*zoom, 72*zoom, null);
-            	   if(c.hasPedestrian()) {
-//                	   g.drawImage(bi_pedestrian, (c.getPedestrian().getX()-car.getX())*zoom, c.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
-            		   g.drawImage(bi_pedestrian, (c.getPedestrian().getX())*zoom, c.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
-            	   }
-               }
+////            	   g.drawImage(bi_crosswalk, (c.getX())*zoom, c.getY()*zoom, 36*zoom, 72*zoom, null);
+//            	   if(c.hasPedestrian()) {
+//            		   if (c.getPedestrian().getY() < 70) {
+//            			   g.drawImage(bi_pedestrian, (c.getPedestrian().getX()-car.getX())*zoom, 70*zoom, 9*zoom, 5*zoom, null);
+////            			   g.drawImage(bi_pedestrian, (c.getPedestrian().getX())*zoom, 70*zoom, 9*zoom, 5*zoom, null);
+//            		   } else if (c.getPedestrian().getY() > 146) {
+//            			   g.drawImage(bi_pedestrian, (c.getPedestrian().getX()-car.getX())*zoom, 146*zoom, 9*zoom, 5*zoom, null);
+////            			   g.drawImage(bi_pedestrian, (c.getPedestrian().getX())*zoom, 146*zoom, 9*zoom, 5*zoom, null);
+//            		   } else {
+//            			   g.drawImage(bi_pedestrian, (c.getPedestrian().getX()-car.getX())*zoom, c.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
+////                		   g.drawImage(bi_pedestrian, (c.getPedestrian().getX())*zoom, c.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
+//            		   }
+//            	   }
+//               }
 
                // Draw car
                if(car.getY() != 0) {
@@ -139,21 +178,21 @@ public class Simulator extends JFrame{
             	   }
             	   g.drawImage(bi_sensor_wide, 30*zoom, (car.getY()-519)*zoom, 600*zoom, 1060*zoom, null);
             	   
-                   // Draw traffic light
-                   BufferedImage bi_traffic_light = null;
-                   try {
-                	   if(trafficLight.isGreen()) {
-                    	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-green.png"));
-                	   } else if(trafficLight.isYellow()) {
-                    	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-yellow.png"));
-                	   } else if(trafficLight.isRed()) {
-                    	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-red.png"));
-                	   }
-                   } catch (IOException e) {
-                       e.printStackTrace();
-                   }
-//                   g.drawImage(bi_traffic_light, (trafficLight.getX()-car.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
-                   g.drawImage(bi_traffic_light, (trafficLight.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
+//                   // Draw traffic light
+//                   BufferedImage bi_traffic_light = null;
+//                   try {
+//                	   if(trafficLight.isGreen()) {
+//                    	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-green.png"));
+//                	   } else if(trafficLight.isYellow()) {
+//                    	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-yellow.png"));
+//                	   } else if(trafficLight.isRed()) {
+//                    	   bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-red.png"));
+//                	   }
+//                   } catch (IOException e) {
+//                       e.printStackTrace();
+//                   }
+////                   g.drawImage(bi_traffic_light, (trafficLight.getX()-car.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
+//                   g.drawImage(bi_traffic_light, (trafficLight.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
                }
                
                // Draw obstacles
@@ -285,10 +324,10 @@ public class Simulator extends JFrame{
 
                if(System.currentTimeMillis() >= nextUpdate) {
 //            	   this.crosswalks.get(0).getPedestrian().check_pedestrian();
-            	   if(this.crosswalks.get(0).hasPedestrian()) {
-            		   if(this.crosswalks.get(0).getPedestrian().isGoingDown()) this.crosswalks.get(0).getPedestrian().setY(this.crosswalks.get(0).getPedestrian().getY()+1);
-            		   else if(this.crosswalks.get(0).getPedestrian().isGoingUp()) this.crosswalks.get(0).getPedestrian().setY(this.crosswalks.get(0).getPedestrian().getY()-1);
-            	   }
+//            	   if(this.crosswalks.get(0).hasPedestrian()) {
+//            		   if(this.crosswalks.get(0).getPedestrian().isGoingDown()) this.crosswalks.get(0).getPedestrian().setY(this.crosswalks.get(0).getPedestrian().getY()+1);
+//            		   else if(this.crosswalks.get(0).getPedestrian().isGoingUp()) this.crosswalks.get(0).getPedestrian().setY(this.crosswalks.get(0).getPedestrian().getY()-1);
+//            	   }
                    window.repaint();
 
                    nextUpdate = System.currentTimeMillis() + fps;
@@ -300,11 +339,6 @@ public class Simulator extends JFrame{
        }
    }
 
-   public static void main(String args[]){
-       Simulator sim = new Simulator();
-       sim.startAnimation();
-    }
-   
    public byte getObstaclesQuantity() {
 	   return obstaclesQuantity;
    }

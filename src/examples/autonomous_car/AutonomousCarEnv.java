@@ -20,7 +20,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private TrafficLight trafficLight;
 	
 	/*Instância do simulador*/
-	private Simulator simulator = new Simulator();
+	private Simulator simulator;
 
 	/*Quantidade de faixas  e obstáculos no ambiente (Pelo menos 2 lanes e 1 obstáculo)*/
 	private int nLanes;
@@ -48,12 +48,21 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 	/*Inicia simulador junto ao construtor do ambiente*/
 	public AutonomousCarEnv() {
+		pedestrianValues = new PedestrianValues(456+14, 74+72, false, false, true, false);
+		pedestrian = new Pedestrian(9, 5, 456+14, 74+72, pedestrianValues);
+		pedestrianThread = new Thread(pedestrian);
+		pedestrianThread.start();
+		simulator = new Simulator(pedestrianValues);
 		new Thread(new Runnable() {
 			public void run() {
 				simulator.startAnimation();
 			}
 		}).start();
 	}
+	
+	   Thread pedestrianThread;
+	   Pedestrian pedestrian;
+	   private PedestrianValues pedestrianValues;
 
 	/*Inicia informações do ambiente*/
 	@Override
@@ -74,16 +83,16 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		/*Inicia o carro na ordem: length, width, velocity, x, y*/
 		this.car = new Car(50, 23, 0, 0, getRoad((int)(Math.random() * 2 + 1)));
 		
-		this.trafficLight = new TrafficLight(17, 67, 1000, 86);
-		Thread trafficLightThread = new Thread(this.trafficLight);
-		trafficLightThread.start();
-		simulator.setTrafficLight(this.trafficLight);
+//		this.trafficLight = new TrafficLight(17, 67, 1000, 86);
+//		Thread trafficLightThread = new Thread(this.trafficLight);
+//		trafficLightThread.start();
+//		simulator.setTrafficLight(this.trafficLight);
 		
-		this.crosswalks = new ArrayList<Crosswalk>();
-		this.crosswalks.add(new Crosswalk(36, 72, 456, 74, true));
-		Thread crosswalkThread = new Thread(this.crosswalks.get(0).getPedestrian());
-		crosswalkThread.start();
-		this.simulator.setCrosswalk(this.crosswalks);
+//		this.crosswalks = new ArrayList<Crosswalk>();
+//		this.crosswalks.add(new Crosswalk(36, 72, 456, 74, true));
+//		Thread crosswalkThread = new Thread(this.crosswalks.get(0).getPedestrian());
+//		crosswalkThread.start();
+//		this.simulator.setCrosswalk(this.crosswalks);
 
 		this.nObstacles = simulator.getObstaclesQuantity();
 		System.out.println(this.nObstacles);
@@ -503,74 +512,74 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			overpastObstacle += 3;
 		}
 	
-		/* Checa o semaforo */
-		if(trafficLight.getX() <= car.front()+car.getWideSensor() && !trafficLight.isFound()){
-			trafficLight.setFound(true);
-			System.out.println("Found trafficLight: (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
-		}
-		
-		
-		if(trafficLight.isFound() && !trafficLight.isAnalized()) {
-			Predicate tl = new Predicate("trafficLight");
-			tl.addTerm(new NumberTermImpl(trafficLight.getX()));
-			tl.addTerm(new NumberTermImpl(trafficLight.getY()));
-			addPercept(agName, tl);
-
-			trafficLight.setAnalized(true);
-
-			System.out.println("TrafficLight1 (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
-		}
-
-		
-		if(trafficLight.isAnalized() && !trafficLight.isSinalized() && trafficLight.getX() <= car.front()+car.getUltrasonicSensor()) {
-			Predicate tlc = new Predicate("trafficLightClose");
-			addPercept(agName, tlc);
-			trafficLight.setSinalized(true);
-			System.out.println("trafficLightClose");
-		}
-		
-		
-		if(trafficLight.isGreen() && trafficLight.isSinalized() && !trafficLight.isOverPast()) {
-			Predicate yellow = new Predicate("trafficLightYellow");
-			removePercept(agName, yellow);
-			Predicate red = new Predicate("trafficLightRed");
-			removePercept(agName, red);
-			
-			Predicate green = new Predicate("trafficLightGreen");
-			addPercept(agName, green);
-
-		} else if(trafficLight.isYellow() && trafficLight.isSinalized() && !trafficLight.isOverPast()) {
-			Predicate green = new Predicate("trafficLightGreen");
-			removePercept(agName, green);
-			Predicate red = new Predicate("trafficLightRed");
-			removePercept(agName, red);
-			
-			Predicate yellow = new Predicate("trafficLightYellow");
-			addPercept(agName, yellow);
-
-		} else if(trafficLight.isRed() && trafficLight.isSinalized() && !trafficLight.isOverPast()) {
-			Predicate green = new Predicate("trafficLightGreen");
-			removePercept(agName, green);
-			Predicate yellow= new Predicate("trafficLightYellow");
-			removePercept(agName, yellow);
-			
-			Predicate red = new Predicate("trafficLightRed");
-			addPercept(agName, red);
-
-		}
-		
-		
-		if(trafficLight.getX() <  car.front() && !trafficLight.isOverPast()) {
-			Predicate tl = new Predicate("trafficLight");
-			tl.addTerm(new NumberTermImpl(trafficLight.getX()));
-			tl.addTerm(new NumberTermImpl(trafficLight.getY()));
-			removePercept(agName, tl);
-
-			Predicate tlc = new Predicate("trafficLightClose");
-			removePercept(agName, tlc);
-			
-			trafficLight.setOverPast(true);
-		}
+//		/* Checa o semaforo */
+//		if(trafficLight.getX() <= car.front()+car.getWideSensor() && !trafficLight.isFound()){
+//			trafficLight.setFound(true);
+//			System.out.println("Found trafficLight: (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
+//		}
+//		
+//		
+//		if(trafficLight.isFound() && !trafficLight.isAnalized()) {
+//			Predicate tl = new Predicate("trafficLight");
+//			tl.addTerm(new NumberTermImpl(trafficLight.getX()));
+//			tl.addTerm(new NumberTermImpl(trafficLight.getY()));
+//			addPercept(agName, tl);
+//
+//			trafficLight.setAnalized(true);
+//
+//			System.out.println("TrafficLight1 (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
+//		}
+//
+//		
+//		if(trafficLight.isAnalized() && !trafficLight.isSinalized() && trafficLight.getX() <= car.front()+car.getUltrasonicSensor()) {
+//			Predicate tlc = new Predicate("trafficLightClose");
+//			addPercept(agName, tlc);
+//			trafficLight.setSinalized(true);
+//			System.out.println("trafficLightClose");
+//		}
+//		
+//		
+//		if(trafficLight.isGreen() && trafficLight.isSinalized() && !trafficLight.isOverPast()) {
+//			Predicate yellow = new Predicate("trafficLightYellow");
+//			removePercept(agName, yellow);
+//			Predicate red = new Predicate("trafficLightRed");
+//			removePercept(agName, red);
+//			
+//			Predicate green = new Predicate("trafficLightGreen");
+//			addPercept(agName, green);
+//
+//		} else if(trafficLight.isYellow() && trafficLight.isSinalized() && !trafficLight.isOverPast()) {
+//			Predicate green = new Predicate("trafficLightGreen");
+//			removePercept(agName, green);
+//			Predicate red = new Predicate("trafficLightRed");
+//			removePercept(agName, red);
+//			
+//			Predicate yellow = new Predicate("trafficLightYellow");
+//			addPercept(agName, yellow);
+//
+//		} else if(trafficLight.isRed() && trafficLight.isSinalized() && !trafficLight.isOverPast()) {
+//			Predicate green = new Predicate("trafficLightGreen");
+//			removePercept(agName, green);
+//			Predicate yellow= new Predicate("trafficLightYellow");
+//			removePercept(agName, yellow);
+//			
+//			Predicate red = new Predicate("trafficLightRed");
+//			addPercept(agName, red);
+//
+//		}
+//		
+//		
+//		if(trafficLight.getX() <  car.front() && !trafficLight.isOverPast()) {
+//			Predicate tl = new Predicate("trafficLight");
+//			tl.addTerm(new NumberTermImpl(trafficLight.getX()));
+//			tl.addTerm(new NumberTermImpl(trafficLight.getY()));
+//			removePercept(agName, tl);
+//
+//			Predicate tlc = new Predicate("trafficLightClose");
+//			removePercept(agName, tlc);
+//			
+//			trafficLight.setOverPast(true);
+//		}
 	}
 	
 	private void removeOldCarPosition(String agName) {
