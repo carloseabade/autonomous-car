@@ -1,7 +1,5 @@
 package autonomous_car;
 
-import javax.swing.JOptionPane;
-
 public class Pedestrian extends Coordinate{
 	
 	private PedestrianValues pedestrianValues;
