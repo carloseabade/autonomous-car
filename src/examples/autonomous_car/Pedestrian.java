@@ -1,7 +1,5 @@
 package autonomous_car;
 
-import javax.swing.JOptionPane;
-
 public class Pedestrian extends Coordinate{
 	
 	public boolean check_pedestrian = false;
@@ -72,42 +70,5 @@ public class Pedestrian extends Coordinate{
 	public void start() {
 		this.getThread().start();
 	}
-	
-	@Override
-	public void run() {
-		while(true) {
-			try {
-				if(isWaitingToGoUp()) {
-					Thread.sleep(2000);
-					this.goingUp = true;
-					this.goingDown = false;
-					this.waitingToGoUp = false;
-					this.waitingToGoDown = false;
-				} else if(isGoingUp()) {
-					if(this.getY()<74) {
-						JOptionPane.showMessageDialog(null, "Deveria parar");
-						this.goingUp = false;
-						this.goingDown = false;
-						this.waitingToGoUp = false;
-						this.waitingToGoDown = true;
-					}
-				} else if(isWaitingToGoDown()) {
-					Thread.sleep(2000);
-					this.goingUp = false;
-					this.goingDown = true;
-					this.waitingToGoUp = false;
-					this.waitingToGoDown = false;
-				} else if(isGoingDown()) {
-					if(this.getY()>146) {
-						this.goingUp = false;
-						this.goingDown = false;
-						this.waitingToGoUp = true;
-						this.waitingToGoDown = false;
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
+
 }

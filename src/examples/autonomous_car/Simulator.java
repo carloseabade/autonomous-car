@@ -101,7 +101,7 @@ public class Simulator extends JFrame{
         	   }
                for(Crosswalk c : crosswalks) {
 //            	   g.drawImage(bi_crosswalk, (c.getX()-car.getX())*zoom, c.getY()*zoom, 36*zoom, 72*zoom, null);
-            	   g.drawImage(bi_crosswalk, (c.getX())*zoom, c.getY()*zoom, 36*zoom, 72*zoom, null);
+           	   g.drawImage(bi_crosswalk, (c.getX())*zoom, c.getY()*zoom, 36*zoom, 72*zoom, null);
             	   if(c.hasPedestrian()) {
 //                	   g.drawImage(bi_pedestrian, (c.getPedestrian().getX()-car.getX())*zoom, c.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
             		   g.drawImage(bi_pedestrian, (c.getPedestrian().getX())*zoom, c.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
@@ -284,7 +284,7 @@ public class Simulator extends JFrame{
                this.readReceivedMessage(sentence);
 
                if(System.currentTimeMillis() >= nextUpdate) {
-//            	   this.crosswalks.get(0).getPedestrian().check_pedestrian();
+            	   this.crosswalks.get(0).getPedestrian().check_pedestrian();
             	   if(this.crosswalks.get(0).hasPedestrian()) {
             		   if(this.crosswalks.get(0).getPedestrian().isGoingDown()) this.crosswalks.get(0).getPedestrian().setY(this.crosswalks.get(0).getPedestrian().getY()+1);
             		   else if(this.crosswalks.get(0).getPedestrian().isGoingUp()) this.crosswalks.get(0).getPedestrian().setY(this.crosswalks.get(0).getPedestrian().getY()-1);
