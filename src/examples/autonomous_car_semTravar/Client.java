@@ -1,4 +1,4 @@
-package autonomous_car_2;
+package autonomous_car_semTravar;
 
 import java.net.*;
 
@@ -18,7 +18,7 @@ public class Client {
 	
 	/* Realiza a comunicação com o servidor utilizando o protocolo UDP.
 	   Recebe String message como parâmetro, transforma seu valor em 
-	   array de bytes e envia para o servidor/simulador.*/
+	   array de bytes e envia para o simulador.*/
 	public static void sendMessage (String message) {
 		try {
     		

@@ -1,4 +1,4 @@
-package autonomous_car_2;
+package autonomous_car_semTravar;
 
 public class Coordinate {
 	
@@ -14,9 +14,7 @@ public class Coordinate {
 	/*Largura do objeto*/
 	private int width;
 	
-	public Coordinate() {
-		
-	}
+	public Coordinate() {}
 	
 	/*Retorna a posição da parte de trás do objeto*/
 	public int back() {
