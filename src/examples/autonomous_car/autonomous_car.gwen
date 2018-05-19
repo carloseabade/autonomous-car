@@ -31,7 +31,8 @@ GWENDOLEN
 						 ~B obs3Close,
 						 ~B stop,
 						 ~B change_lane,
-						 ~B trafficLightClose,
+						 ~B trafficLightYellow,
+						 ~B trafficLightRed,
 						  B velocity(V),
 						  B maxVelocity(MV),
 						  V < MV} <-
@@ -46,25 +47,15 @@ GWENDOLEN
 						 ~B obs3Close,
 						 ~B stop,
 						 ~B change_lane,
-						 ~B trafficLightClose,
+						 ~B trafficLightYellow,
+						 ~B trafficLightRed,
 						  B velocity(V),
 						  B maxVelocity(MV),
 						  V == MV} <-
 	+run;
 
-        /****************************************************** CASO TENHA UM SEMAFORO *****************************************************/    
+        /****************************************** CASO TENHA UM SEMAFORO NO AMARELO OU VERMELHO ******************************************/    
 
-+!go_forward [perform] : {B lane1(D1), 
-						  B lane2(D2),
-						  0 < D1,
-						  0 < D2,
-						  B trafficLightClose, 
-						  B trafficLightGreen} <-
-	accelerate, 
-	*going_forward,
-	check_env,
-	+!go_forward [perform];
-	
 +!go_forward [perform] : {B lane1(D1), 
 						  B lane2(D2),
 						  0 < D1,
