@@ -1,8 +1,7 @@
 package autonomous_car;
 
-public class TrafficLight extends Coordinate implements Runnable{
-	
-	private Thread thread;
+public class TrafficLight extends Coordinate{
+
 	private boolean red, yellow, green;
 	private Boolean found = false;
 	private Boolean analized = false;
@@ -10,11 +9,11 @@ public class TrafficLight extends Coordinate implements Runnable{
 	private Boolean overPast = false;
 
 	public TrafficLight(int length, int width, int x, int y) {
+		super("Thread do semaforo");
 		super.setLength(length);
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
-		thread = new Thread();
 		this.setRed(true);
 		this.setYellow(false);
 		this.setGreen(false);
@@ -77,7 +76,7 @@ public class TrafficLight extends Coordinate implements Runnable{
 	}
 
 	public void start() {
-		thread.start();
+		this.getThread().start();
 	}
 	
 	@Override

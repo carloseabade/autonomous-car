@@ -19,7 +19,8 @@ public class Crosswalk extends Coordinate{
 		this.hasPedestrian = hasPedestrian;
 		if(hasPedestrian) {
 			this.addPedestrian();
-			this.pedestrian.start();
+//			Thread pedestrianThread = new Thread(this.pedestrian);
+//			pedestrianThread.start();
 		}
 	}
 	

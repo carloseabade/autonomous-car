@@ -29,7 +29,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	/*Lista que armazena as as informações de todos os obstáculos*/
 	private ArrayList<Obstacle> obstacles;
 	/*Lista que armazena as as informações de todos as faixas de pedestre*/
-	private Crosswalk crosswalk;
+	private ArrayList<Crosswalk> crosswalks;
 
 	/*Classe que armazena as posições de cada pista*/
 	private Road road;
@@ -78,11 +78,12 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		Thread trafficLightThread = new Thread(this.trafficLight);
 		trafficLightThread.start();
 		simulator.setTrafficLight(this.trafficLight);
-
-		this.crosswalk = new Crosswalk(36, 72, 456, 74, true);
-//		Thread pedestrianThread = new Thread(this.crosswalk.getPedestrian());
-//		pedestrianThread.start();
-		simulator.setCrosswalk(this.crosswalk);
+		
+		this.crosswalks = new ArrayList<Crosswalk>();
+		this.crosswalks.add(new Crosswalk(36, 72, 456, 74, true));
+		Thread crosswalkThread = new Thread(this.crosswalks.get(0).getPedestrian());
+		crosswalkThread.start();
+		this.simulator.setCrosswalk(this.crosswalks);
 
 		this.nObstacles = simulator.getObstaclesQuantity();
 		System.out.println(this.nObstacles);
@@ -306,6 +307,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		}
 		
 		this.simulator.setObstacles(obstacles);
+		
 
 	}
 	
