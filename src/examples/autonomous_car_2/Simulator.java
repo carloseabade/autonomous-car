@@ -246,21 +246,21 @@ public class Simulator extends JFrame{
    private void readReceivedMessage(String message) {
 
 	   String[] messageArray = message.split(";");
-       String switchMessage = messageArray[0];
-
-       switch(switchMessage) {
-           case    "carLocation":
-               car.setX(Integer.parseInt(messageArray[1]));
-               car.setY(Integer.parseInt(messageArray[2]));
-               break;
-           case    "obsLocation":
-               obstacles.add(new Obstacle(5, 2, (Integer.parseInt(messageArray[1])), (Integer.parseInt(messageArray[2]))));
-               break;
-           default:
-               System.out.println("Erro");
-               System.out.println(messageArray[0]);
-           }
-       }
+	   String switchMessage = messageArray[0];
+	
+	   switch(switchMessage) {
+	       case    "carLocation":
+	           car.setX(Integer.parseInt(messageArray[1]));
+	           car.setY(Integer.parseInt(messageArray[2]));
+	           break;
+	       case    "obsLocation":
+	           obstacles.add(new Obstacle(5, 2, (Integer.parseInt(messageArray[1])), (Integer.parseInt(messageArray[2]))));
+	           break;
+	       default:
+	           System.out.println("Erro");
+	           System.out.println(messageArray[0]);
+	       }
+   }
 
    public void startAnimation() {
        long nextUpdate = 0;

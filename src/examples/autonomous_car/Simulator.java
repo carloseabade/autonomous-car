@@ -24,6 +24,8 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.util.ArrayList;
 
 public class Simulator extends JFrame{
@@ -40,7 +42,10 @@ public class Simulator extends JFrame{
 
    private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
    private ArrayList<Obstacle> obstacles = new ArrayList<>();
+   private Crosswalk crosswalk = new Crosswalk(36, 72, 456, 74, true);
    TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
+   
+   private static DatagramSocket server;
 
    private int fps = 1000 / 24;
    private boolean animate = true;
@@ -53,6 +58,8 @@ public class Simulator extends JFrame{
    Simulator() {
 	   window = new JPanel();
        window.setLayout(new BorderLayout());
+       
+       Crosswalk crosswalk = this.crosswalk;
        
        JPanel drawing = new JPanel() {
            @Override
@@ -76,6 +83,28 @@ public class Simulator extends JFrame{
                }
                
                g.fillRect(0, 146*zoom, width, 1*zoom);
+               
+               
+               // Draw crosswalk
+        	   BufferedImage bi_crosswalk = null;
+        	   try {
+        		   bi_crosswalk = ImageIO.read(new File("./res/img/crosswalk.png"));
+        	   } catch (IOException e) {
+        		   e.printStackTrace();
+        	   }
+        	   // Draw pedestrian
+        	   BufferedImage bi_pedestrian = null;
+        	   try {
+        		   bi_pedestrian = ImageIO.read(new File("./res/img/pedestrian.png"));
+        	   } catch (IOException e) {
+        		   e.printStackTrace();
+        	   }
+//               for(Crosswalk c : crosswalk) {
+            	   g.drawImage(bi_crosswalk, (crosswalk.getX()-car.getX())*zoom, crosswalk.getY()*zoom, 36*zoom, 72*zoom, null);
+            	   if(crosswalk.hasPedestrian()) {
+                	   g.drawImage(bi_pedestrian, (crosswalk.getPedestrian().getX()-car.getX())*zoom, crosswalk.getPedestrian().getY()*zoom, 9*zoom, 5*zoom, null);
+            	   }
+//               }
 
                // Draw car
                if(car.getY() != 0) {
@@ -200,20 +229,6 @@ public class Simulator extends JFrame{
        });
        simulatorSettings.add(jB_start);
        
-       jB_close = new JButton("Close");
-       jB_close.addActionListener(new ActionListener() {
-    	   @Override
-    	   public void actionPerformed(ActionEvent actionEvent) {
-    		   int result = JOptionPane.showConfirmDialog(window, "Do you want to close properties window?");
-    		   if(result == 0) {
-    			   BorderLayout bl = (BorderLayout) window.getLayout();
-    			   window.remove(bl.getLayoutComponent(BorderLayout.EAST));
-    			   window.repaint();
-    		   }
-    	   }
-       });
-       simulatorSettings.add(jB_close);
-
        add(window);
        
        window.add(drawing, BorderLayout.CENTER);
@@ -230,16 +245,57 @@ public class Simulator extends JFrame{
        height = getHeight();
        window.repaint();
    }
+   
+   private void readReceivedMessage(String message) {
+
+	   String[] messageArray = message.split(";");
+	   String switchMessage = messageArray[0];
+	
+	   switch(switchMessage) {
+	       case    "carLocation":
+	           car.setX(Integer.parseInt(messageArray[1]));
+	           car.setY(Integer.parseInt(messageArray[2]));
+	           break;
+//	       case    "obsLocation":
+//	           obstacles.add(new Obstacle(5, 2, (Integer.parseInt(messageArray[1])), (Integer.parseInt(messageArray[2]))));
+//	           break;
+	       default:
+	           System.out.println("Erro");
+	           System.out.println(messageArray[0]);
+	       }
+   }
 
    public void startAnimation() {
        long nextUpdate = 0;
-	
-       while(animate) {
-           if(System.currentTimeMillis() >= nextUpdate) {
-               window.repaint();
 
-               nextUpdate = System.currentTimeMillis() + fps;
+       try {
+    	   server = new DatagramSocket(9999);
+           byte[] receive = new byte[1024];
+           DatagramPacket receivePacket = new DatagramPacket(receive, receive.length); // Pacote Recebido
+
+           while(animate) {
+               server.receive(receivePacket);
+
+               String sentence = new String(receivePacket.getData());
+               this.readReceivedMessage(sentence);
+
+               if(System.currentTimeMillis() >= nextUpdate) {
+            	   if(this.crosswalk.hasPedestrian()) {
+            		   if(this.crosswalk.getPedestrian().isGoingDown()) {
+            			   this.crosswalk.getPedestrian().setY(this.crosswalk.getPedestrian().getY()+1);
+            		   }
+            		   else if(this.crosswalk.getPedestrian().isGoingUp()) {
+            			   this.crosswalk.getPedestrian().setY(this.crosswalk.getPedestrian().getY()-1);
+            		   }
+        		   }
+                   window.repaint();
+
+                   nextUpdate = System.currentTimeMillis() + fps;
+               }
            }
+       }
+       catch (Exception e) {
+           System.out.println(e);
        }
    }
 
@@ -266,15 +322,20 @@ public class Simulator extends JFrame{
 
    public void setTrafficLight(TrafficLight trafficLight) {
 	   this.trafficLight = trafficLight;
-	   this.trafficLight.start();
    }
    
    public TrafficLight getTrafficLight() {
 	   return this.trafficLight;
    }
    
-   public void setObstacles(ArrayList<Obstacle> obstacles2) {
-	   this.obstacles = obstacles2;
+   public void setObstacles(ArrayList<Obstacle> obstacles) {
+	   this.obstacles = obstacles;
+   }
+   
+   public void setCrosswalk(Crosswalk crosswalk) {
+	   this.crosswalk = crosswalk;
+	   Thread pedestrianThread = new Thread(this.crosswalk.getPedestrian());
+	   pedestrianThread.start();
    }
    
    public void setCarLocation(Car car2) {
@@ -302,7 +363,6 @@ private JPanel simulatorSettings;
    private JSlider jS_zoom;
    private JButton jB_apply;
    private JButton jB_start;
-   private JButton jB_close;
    
    private JMenu jM_File;
    private JMenu jM_Edit;
