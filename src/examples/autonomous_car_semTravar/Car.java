@@ -11,24 +11,20 @@ public class Car extends Coordinate{
 	/*Aceleração constante do carro*/
 	private int acceleration;
 	
-	/*Sensor utilizado para detectar carros próximos. 
-	  Distancia maxima: 8m. Proporcional: 4*/
+	/*Sensor utilizado para detectar obstáculos próximos*/
 	private int ultrasonicSensor; 
 	
-	/*Sensor que captura os semáforos, obstáculos que 
-	  cortam o caminho da viagem e objetos. Para 
-	  manobras urbanas de baixa velocidade. 
-	  Distancia maxima: 60m. Proporcional 30*/
+	/*Sensor que captura os semáforos*/
 	private int wideSensor; 
 	
+	public Car() {}
+	
 	public Car(int length, int width, int velocity, int x, int y) {
-		
 		super.setX(x);
 		super.setY(y);
 		super.setLength(length);
 		super.setWidth(width);
-		this.velocity = velocity;
-		
+		this.velocity = velocity;	
 	}
 
 	public int getVelocity() {
