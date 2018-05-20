@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -18,8 +20,10 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.WindowConstants;
@@ -50,10 +54,18 @@ public class Simulator extends JFrame{
 	private int fps = 1000 / 24;
 	private boolean animate = true;
 	private boolean notStart = true;
-	private byte zoom = 1;
+	private byte zoom = 2;
 
 	private byte lanesQuantity = 2;
 	private byte obstaclesQuantity = 4;
+	
+	private boolean showWideSensor = true;
+	private boolean showWideSensorOutline = false;
+	private boolean showUltrasonicSensor = true;
+	private boolean showUltrasonicSensorOutline = false;
+	
+	private int mouseY = 0;
+	private int mouseDraggedY = 0;
 
 	Simulator(PedestrianValues pedestrianValues) {
 		this.pedestrianValues = pedestrianValues;
@@ -63,29 +75,28 @@ public class Simulator extends JFrame{
 		JPanel drawing = new JPanel() {
 			@Override
 			public void paintComponent(Graphics g) {
-				g.setColor(Color.decode("#fdfdfd"));
+				g.setColor(Color.decode("#518535"));
 				g.fillRect(0, 0, width, height);
 
-				g.setColor(Color.decode("#dcdcdc"));
+				//Draw road
+				g.setColor(Color.decode("#423d42"));
+				g.fillRect(0, (74-mouseDraggedY)*zoom, width, 72*zoom);
 
-				//               //Draw lane lines
-				//               g.fillRect(0, 0, width, 1*zoom);
-				//
-				//               for(int i = 0; i < width+car.getX()*zoom; i += 36*zoom) {
-				////                   g.fillRect(i-car.getX()*zoom, 36*zoom, 23*zoom, 1*zoom);
-				//            	   g.fillRect(i*zoom, 36*zoom, 23*zoom, 1*zoom);
-				//               }
+				//Draw lane lines
+				g.setColor(Color.decode("#daa226"));
+				g.fillRect(0, (71-mouseDraggedY)*zoom, width, 4*zoom);
 
-				g.fillRect(0, 74*zoom, width, 1*zoom);
-
+				g.setColor(Color.decode("#fbfbfb"));
 				for(int i = 0; i < width+car.getX()*zoom; i += 36*zoom) {
-					g.fillRect(i-car.getX()*zoom, 110*zoom, 23*zoom, 1*zoom);
+					g.fillRect(i-car.getX()*zoom, (110-mouseDraggedY)*zoom, 23*zoom, 1*zoom);
 				}
 
-				g.fillRect(0, 146*zoom, width, 1*zoom);
+				g.setColor(Color.decode("#daa226"));
+				g.fillRect(0, (146-mouseDraggedY)*zoom, width, 4*zoom);
 
 				// Draw car, sensor, sensor wide, traffic light, crosswalk, pedestrian
 				if(car.getY() != 0) {
+					g.setColor(Color.decode("#fbfbfb"));
 					// Draw crosswalk
 					BufferedImage bi_crosswalk = null;
 					try {
@@ -102,12 +113,20 @@ public class Simulator extends JFrame{
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					
 					if(pedestrianValues.isGoingUp()) {
 						pedestrianValues.setY(pedestrianValues.getY()-1);
 					} else if(pedestrianValues.isGoingDown()) {
 						pedestrianValues.setY(pedestrianValues.getY()+1);
 					}
-					g.drawImage(bi_pedestrian, (pedestrianValues.getX()-car.getX())*zoom, pedestrianValues.getY()*zoom, 9*zoom, 5*zoom, null);
+
+					if(pedestrianValues.getY() < 70) {
+						g.drawImage(bi_pedestrian, (pedestrianValues.getX()-car.getX())*zoom, 70*zoom, 9*zoom, 5*zoom, null);						
+					} else if (pedestrianValues.getY() > 146) {
+						g.drawImage(bi_pedestrian, (pedestrianValues.getX()-car.getX())*zoom, 146*zoom, 9*zoom, 5*zoom, null);
+					} else {
+						g.drawImage(bi_pedestrian, (pedestrianValues.getX()-car.getX())*zoom, pedestrianValues.getY()*zoom, 9*zoom, 5*zoom, null);
+					}
 
 					//Draw car
 					BufferedImage bi_car = null;
@@ -121,24 +140,61 @@ public class Simulator extends JFrame{
 					g.setColor(Color.decode("#ff0000"));
 					g.drawString(String.valueOf(car.getX()), 20, 20);
 
-					// Draw sensor
-					BufferedImage bi_sensor = null;
+					if(showUltrasonicSensor) {
+						// Draw ultrasonic sensor
+						BufferedImage bi_sensor = null;
+						try {
+							bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides.png"));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						g.drawImage(bi_sensor, -40*zoom, (car.getY()-40)*zoom, 130*zoom, 103*zoom, null);
+					}
+
+					if(showUltrasonicSensorOutline) {
+						// Draw ultrasonic sensor
+						BufferedImage bi_sensor_outline = null;
+						try {
+							bi_sensor_outline = ImageIO.read(new File("./res/img/sensor-all-sides-outline.png"));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						g.drawImage(bi_sensor_outline, -40*zoom, (car.getY()-40)*zoom, 130*zoom, 103*zoom, null);
+					}
+					
+					if(showWideSensor) {
+						// Draw sensor wide
+						BufferedImage bi_sensor_wide = null;
+						try {
+							bi_sensor_wide = ImageIO.read(new File("./res/img/sensor-wide.png"));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						g.drawImage(bi_sensor_wide, 30*zoom, (car.getY()-518)*zoom, 600*zoom, 1060*zoom, null);
+					}
+					
+					if(showWideSensorOutline) {
+						// Draw sensor wide
+						BufferedImage bi_sensor_wide_outline = null;
+						try {
+							bi_sensor_wide_outline = ImageIO.read(new File("./res/img/sensor-wide-outline.png"));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+						g.drawImage(bi_sensor_wide_outline, 30*zoom, (car.getY()-518)*zoom, 600*zoom, 1060*zoom, null);
+					}
+
+					// Draw obstacles
+					BufferedImage bi_stone = null;
 					try {
-						bi_sensor = ImageIO.read(new File("./res/img/sensor-all-sides.png"));
+						bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					g.drawImage(bi_sensor, -40*zoom, (car.getY()-40)*zoom, 130*zoom, 103*zoom, null);
-
-					// Draw sensor wide
-					BufferedImage bi_sensor_wide = null;
-					try {
-						bi_sensor_wide = ImageIO.read(new File("./res/img/sensor-wide.png"));
-					} catch (IOException e) {
-						e.printStackTrace();
+					for(Obstacle c : obstacles) {
+						g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
 					}
-					g.drawImage(bi_sensor_wide, 30*zoom, (car.getY()-519)*zoom, 600*zoom, 1060*zoom, null);
-
+						
 					// Draw traffic light
 					BufferedImage bi_traffic_light = null;
 					try {
@@ -153,45 +209,42 @@ public class Simulator extends JFrame{
 						e.printStackTrace();
 					}
 					g.drawImage(bi_traffic_light, (trafficLight.getX()-car.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
-
-				}
-
-				// Draw obstacles
-				BufferedImage bi_stone = null;
-				try {
-					bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				for(Obstacle c : obstacles) {
-					g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
 				}
 			}
 		};
+		
+		drawing.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				System.out.println(mouseY);
+				e.consume();
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				mouseY = e.getY();
+				e.consume();
+			}			
+		});
 
 		simulatorSettings = new JPanel();
 		simulatorSettings.setBorder(BorderFactory.createTitledBorder("Simulator Configuration:"));
 		simulatorSettings.setLayout(new BoxLayout(simulatorSettings, BoxLayout.PAGE_AXIS));
 
-		jL_lanesQuantity = new JLabel("Lanes quantity:");
-		jS_lanesQuantity = new JSlider();
-		jS_lanesQuantity.setPaintLabels(true);
-		jS_lanesQuantity.setMaximum(4);
-		jS_lanesQuantity.setValue(getLanesQuantity());
-		jS_lanesQuantity.setMinimum(2);
-		jS_lanesQuantity.setMajorTickSpacing(1);
-		jS_lanesQuantity.setPaintTicks(true);
-		simulatorSettings.add(jL_lanesQuantity);
-		simulatorSettings.add(jS_lanesQuantity);
-
-		jL_obstaclesQuantity = new JLabel("Obstacles quantity:");
+		jL_obstaclesQuantity = new JLabel("Obstacles quantity: "+ obstaclesQuantity);
 		jS_obstaclesQuantity = new JSlider();
 		jS_obstaclesQuantity.setMaximum(50);
 		jS_obstaclesQuantity.setValue(getObstaclesQuantity());
 		jS_obstaclesQuantity.setMinimum(0);
 		jS_obstaclesQuantity.setMajorTickSpacing(1);
 		jS_obstaclesQuantity.setPaintTicks(true);
-		simulatorSettings.add(jL_obstaclesQuantity);
+		jS_obstaclesQuantity.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				obstaclesQuantity = (byte) jS_obstaclesQuantity.getValue();
+				jL_obstaclesQuantity.setText("Obstacles quantity: "+ obstaclesQuantity);
+			}
+		});		simulatorSettings.add(jL_obstaclesQuantity);
 		simulatorSettings.add(jS_obstaclesQuantity);
 
 		jL_zoom = new JLabel("Zoom:");
@@ -211,27 +264,62 @@ public class Simulator extends JFrame{
 		});
 		simulatorSettings.add(jL_zoom);
 		simulatorSettings.add(jS_zoom);
-
-		jB_apply = new JButton("Apply");
-		jB_apply.addActionListener(new ActionListener() {
+		
+		jCB_wideSensor = new JCheckBox("Show wide sensor");
+		jCB_wideSensor.setSelected(showWideSensor);
+		jCB_wideSensor.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
-				setLanesQuantity((byte) jS_lanesQuantity.getValue());
-				setObstaclesQuantity((byte) jS_obstaclesQuantity.getValue());
-				window.repaint();
+				if(showWideSensor) showWideSensor = false;
+				else showWideSensor = true;
 			}
 		});
-		simulatorSettings.add(jB_apply);
+		simulatorSettings.add(jCB_wideSensor);
+		
+		jCB_wideSensorOutline = new JCheckBox("Show wide sensor outline");
+		jCB_wideSensorOutline.setSelected(showWideSensorOutline);
+		jCB_wideSensorOutline.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				if(showWideSensorOutline) showWideSensorOutline = false;
+				else showWideSensorOutline = true;
+			}
+		});
+		simulatorSettings.add(jCB_wideSensorOutline);
+
+		jCB_ultrasonicSensor = new JCheckBox("Show ultrasonic sensor");
+		jCB_ultrasonicSensor.setSelected(true);
+		jCB_ultrasonicSensor.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				if(showUltrasonicSensor) showUltrasonicSensor = false;
+				else showUltrasonicSensor = true;
+			}
+		});
+		simulatorSettings.add(jCB_ultrasonicSensor);
+		
+		jCB_ultrasonicSensorOutline = new JCheckBox("Show ultrasonic sensor");
+		jCB_ultrasonicSensorOutline.setSelected(showUltrasonicSensorOutline);
+		jCB_ultrasonicSensorOutline.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent actionEvent) {
+				if(showUltrasonicSensorOutline) showUltrasonicSensorOutline = false;
+				else showUltrasonicSensorOutline = true;
+			}
+		});
+		simulatorSettings.add(jCB_ultrasonicSensorOutline);
 
 		jB_start = new JButton("Start");
 		jB_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				notStart = false;
+				jS_obstaclesQuantity.setEnabled(false);
+				jL_obstaclesQuantity.setEnabled(false);
 			}
 		});
 		simulatorSettings.add(jB_start);
-
+		
 		add(window);
 
 		window.add(drawing, BorderLayout.CENTER);
@@ -290,6 +378,11 @@ public class Simulator extends JFrame{
 			System.out.println(e);
 		}
 	}
+	
+	public static void main(String args[]){
+        Simulator sim = new Simulator(new PedestrianValues(0, 0, 0, 0, false, false, false, false));
+        sim.startAnimation();
+     }
 
 	public byte getObstaclesQuantity() {
 		return obstaclesQuantity;
@@ -327,8 +420,8 @@ public class Simulator extends JFrame{
 		this.pedestrian = pedestrian;
 	}
 
-	public void setCarLocation(Car car2) {
-		this.car = car2;
+	public void setCarLocation(Car car) {
+		this.car = car;
 	}
 
 	public byte getLanesQuantity() {
@@ -344,12 +437,13 @@ public class Simulator extends JFrame{
 	}
 
 	private JPanel simulatorSettings;
-	private JLabel jL_lanesQuantity;
-	private JSlider jS_lanesQuantity;
 	private JLabel jL_obstaclesQuantity;
 	private JSlider jS_obstaclesQuantity;
 	private JLabel jL_zoom;
 	private JSlider jS_zoom;
-	private JButton jB_apply;
 	private JButton jB_start;
+	private JCheckBox jCB_wideSensor;
+	private JCheckBox jCB_wideSensorOutline;
+	private JCheckBox jCB_ultrasonicSensor;
+	private JCheckBox jCB_ultrasonicSensorOutline;
 }
