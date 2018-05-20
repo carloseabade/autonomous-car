@@ -53,16 +53,16 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	}
 
 	public void initVariables() {
-		pedestrianValues = new PedestrianValues(9, 5, 800, 146, false, false, true, false);
+		pedestrianValues = new PedestrianValues(9, 5, 456+14, 74+72, false, false, true, false);
 		pedestrian = new Pedestrian(pedestrianValues);
 		pedestrianThread = new Thread(pedestrian);
 		pedestrianThread.start();
 		trafficLight = new TrafficLight(17, 67, 1000, 86);
 		trafficLightThread = new Thread(trafficLight);
 		trafficLightThread.start();
-		crosswalk = new Crosswalk(36, 72, 800-14, 146-72);
 		Thread trafficLightThread = new Thread(this.trafficLight);
 		trafficLightThread.start();
+//		crosswalk = new Crosswalk(36, 72, 800-14, 146-72);
 		crosswalk = new Crosswalk(36, 72, 456, 74);
 		simulator = new Simulator(pedestrianValues);
 		simulator.setTrafficLight(trafficLight);

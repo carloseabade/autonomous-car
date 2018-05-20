@@ -44,7 +44,8 @@ public class Simulator extends JFrame{
 	private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
 	private ArrayList<Obstacle> obstacles = new ArrayList<>();
 	private Crosswalk crosswalk;
-	private TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
+	private TrafficLight trafficLight;
+	private PedestrianValues pedestrianValues;
 
 	private int fps = 1000 / 24;
 	private boolean animate = true;
@@ -65,6 +66,8 @@ public class Simulator extends JFrame{
 	private int mouseDraggedY = 0;
 
 	Simulator(PedestrianValues pedestrianValues) {
+		this.pedestrianValues = pedestrianValues;
+		
 		window = new JPanel();
 		window.setLayout(new BorderLayout());
 
@@ -313,8 +316,6 @@ public class Simulator extends JFrame{
 		jB_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
-				setLanesQuantity((byte) jS_lanesQuantity.getValue());
-				setObstaclesQuantity((byte) jS_obstaclesQuantity.getValue());
 				notStart = false;
 				jS_obstaclesQuantity.setEnabled(false);
 				jL_obstaclesQuantity.setEnabled(false);
