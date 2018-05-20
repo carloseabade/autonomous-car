@@ -2,19 +2,10 @@ package autonomous_car_semTravar;
 
 public class Car extends Coordinate{
 
-	/*Velocidade atual do carroem m/s*/
 	private int velocity;
-	
-	/*Velocidade máxima do carro em m/s*/
 	private int maxVelocity;
-	
-	/*Aceleração constante do carro*/
 	private int acceleration;
-	
-	/*Sensor utilizado para detectar obstáculos próximos*/
 	private int ultrasonicSensor; 
-	
-	/*Sensor que captura os semáforos*/
 	private int wideSensor; 
 	
 	public Car() {}
@@ -67,7 +58,4 @@ public class Car extends Coordinate{
 		this.acceleration = acceleration;
 	}
 	
-	public int getFront() {
-		return getLength();
-	}
 }

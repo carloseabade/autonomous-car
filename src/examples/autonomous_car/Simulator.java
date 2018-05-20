@@ -1,19 +1,9 @@
 package autonomous_car;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.util.ArrayList;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -25,6 +15,15 @@ import javax.swing.JSlider;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.util.ArrayList;
 
 public class Simulator extends JFrame{
 
@@ -41,26 +40,25 @@ public class Simulator extends JFrame{
 	private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
 	private ArrayList<Obstacle> obstacles = new ArrayList<>();
 	private Crosswalk crosswalk;
-	private Pedestrian pedestrian;
-	private PedestrianValues pedestrianValues;
 	private TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
-
-	private static DatagramSocket server;
 
 	private int fps = 1000 / 24;
 	private boolean animate = true;
 	private boolean notStart = true;
-	private byte zoom = 1;
+	private byte zoom = 2;
+
+	private static DatagramSocket server;
 
 	private byte lanesQuantity = 2;
 	private byte obstaclesQuantity = 4;
 
 	Simulator(PedestrianValues pedestrianValues) {
-		this.pedestrianValues = pedestrianValues;
 		window = new JPanel();
 		window.setLayout(new BorderLayout());
 
 		JPanel drawing = new JPanel() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void paintComponent(Graphics g) {
 				g.setColor(Color.decode("#fdfdfd"));
@@ -68,13 +66,12 @@ public class Simulator extends JFrame{
 
 				g.setColor(Color.decode("#dcdcdc"));
 
-				//               //Draw lane lines
-				//               g.fillRect(0, 0, width, 1*zoom);
-				//
-				//               for(int i = 0; i < width+car.getX()*zoom; i += 36*zoom) {
-				////                   g.fillRect(i-car.getX()*zoom, 36*zoom, 23*zoom, 1*zoom);
-				//            	   g.fillRect(i*zoom, 36*zoom, 23*zoom, 1*zoom);
-				//               }
+				//Draw lane lines
+				g.fillRect(0, 0, width, 1*zoom);
+
+				for(int i = 0; i < width+car.getX()*zoom; i += 36*zoom) {
+					g.fillRect(i-car.getX()*zoom, 36*zoom, 23*zoom, 1*zoom);
+				}
 
 				g.fillRect(0, 74*zoom, width, 1*zoom);
 
@@ -86,6 +83,7 @@ public class Simulator extends JFrame{
 
 				// Draw car, sensor, sensor wide, traffic light, crosswalk, pedestrian
 				if(car.getY() != 0) {
+
 					// Draw crosswalk
 					BufferedImage bi_crosswalk = null;
 					try {
@@ -118,9 +116,6 @@ public class Simulator extends JFrame{
 					}
 					g.drawImage(bi_car, 0, (car.getY())*zoom, 50*zoom, 23*zoom, null);
 
-					g.setColor(Color.decode("#ff0000"));
-					g.drawString(String.valueOf(car.getX()), 20, 20);
-
 					// Draw sensor
 					BufferedImage bi_sensor = null;
 					try {
@@ -139,6 +134,17 @@ public class Simulator extends JFrame{
 					}
 					g.drawImage(bi_sensor_wide, 30*zoom, (car.getY()-519)*zoom, 600*zoom, 1060*zoom, null);
 
+					// Draw obstacles
+					BufferedImage bi_stone = null;
+					try {
+						bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					for(Obstacle c : obstacles) {
+						g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
+					}
+
 					// Draw traffic light
 					BufferedImage bi_traffic_light = null;
 					try {
@@ -156,19 +162,9 @@ public class Simulator extends JFrame{
 
 				}
 
-				// Draw obstacles
-				BufferedImage bi_stone = null;
-				try {
-					bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				for(Obstacle c : obstacles) {
-					g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
-				}
+
 			}
 		};
-
 		simulatorSettings = new JPanel();
 		simulatorSettings.setBorder(BorderFactory.createTitledBorder("Simulator Configuration:"));
 		simulatorSettings.setLayout(new BoxLayout(simulatorSettings, BoxLayout.PAGE_AXIS));
@@ -188,7 +184,7 @@ public class Simulator extends JFrame{
 		jS_obstaclesQuantity = new JSlider();
 		jS_obstaclesQuantity.setMaximum(50);
 		jS_obstaclesQuantity.setValue(getObstaclesQuantity());
-		jS_obstaclesQuantity.setMinimum(0);
+		jS_obstaclesQuantity.setMinimum(1);
 		jS_obstaclesQuantity.setMajorTickSpacing(1);
 		jS_obstaclesQuantity.setPaintTicks(true);
 		simulatorSettings.add(jL_obstaclesQuantity);
@@ -212,21 +208,12 @@ public class Simulator extends JFrame{
 		simulatorSettings.add(jL_zoom);
 		simulatorSettings.add(jS_zoom);
 
-		jB_apply = new JButton("Apply");
-		jB_apply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent actionEvent) {
-				setLanesQuantity((byte) jS_lanesQuantity.getValue());
-				setObstaclesQuantity((byte) jS_obstaclesQuantity.getValue());
-				window.repaint();
-			}
-		});
-		simulatorSettings.add(jB_apply);
-
 		jB_start = new JButton("Start");
 		jB_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
+				setLanesQuantity((byte) jS_lanesQuantity.getValue());
+				setObstaclesQuantity((byte) jS_obstaclesQuantity.getValue());
 				notStart = false;
 			}
 		});
@@ -309,22 +296,19 @@ public class Simulator extends JFrame{
 
 	public void setTrafficLight(TrafficLight trafficLight) {
 		this.trafficLight = trafficLight;
+		this.trafficLight.start();
 	}
 
 	public TrafficLight getTrafficLight() {
 		return this.trafficLight;
 	}
 
-	public void setObstacles(ArrayList<Obstacle> obstacles) {
-		this.obstacles = obstacles;
+	public void setObstacles(ArrayList<Obstacle> obstacles2) {
+		this.obstacles = obstacles2;
 	}
 
 	public void setCrosswalk(Crosswalk crosswalk) {
 		this.crosswalk = crosswalk;
-	}
-
-	public void setPedestrian(Pedestrian pedestrian) {
-		this.pedestrian = pedestrian;
 	}
 
 	public void setCarLocation(Car car2) {
@@ -350,6 +334,5 @@ public class Simulator extends JFrame{
 	private JSlider jS_obstaclesQuantity;
 	private JLabel jL_zoom;
 	private JSlider jS_zoom;
-	private JButton jB_apply;
 	private JButton jB_start;
 }

@@ -7,14 +7,14 @@ public class Obstacle extends Coordinate{
 	private Boolean sinalized = false;
 	private Boolean overPast = false;
 	
+	public Obstacle() {}
+	
 	public Obstacle(int length, int width, int x, int y) {
 		super.setLength(length);
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
 	}
-	
-	public Obstacle() {}
 
 	public Boolean getFound() {
 		return found;
