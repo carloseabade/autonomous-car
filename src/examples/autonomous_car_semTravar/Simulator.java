@@ -40,9 +40,9 @@ public class Simulator extends JFrame{
 	private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
 	private ArrayList<Obstacle> obstacles = new ArrayList<>();
 	private Crosswalk crosswalk;
-	private TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
+	private TrafficLight trafficLight;
 
-	private int fps = 1000 / 24;
+	private int fps = 1000 / 48;
 	private boolean animate = true;
 	private boolean notStart = true;
 	private byte zoom = 2;
