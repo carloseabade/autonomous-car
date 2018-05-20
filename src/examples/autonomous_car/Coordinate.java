@@ -1,32 +1,13 @@
 package autonomous_car;
 
-public class Coordinate implements Runnable{
+public class Coordinate {
 	
-	//Thread de execução da classe
-	private Thread thread;
-	
-	public Thread getThread() {
-		return thread;
-	}
-	
-	/*Posição no eixo x*/
 	private int x;
-	
-	/*Posição no eixo y*/
 	private int y;
-	
-	/*Comprimento do objeto*/
 	private int length; 
-	
-	/*Largura do objeto*/
 	private int width;
 	
-	public Coordinate() {
-	}
-	
-	public Coordinate(String threadName) {
-		thread = new Thread(threadName);
-	}
+	public Coordinate() {}
 	
 	/*Retorna a posição da parte de trás do objeto*/
 	public int back() {
@@ -68,12 +49,6 @@ public class Coordinate implements Runnable{
 
 	public void setWidth(int width) {
 		this.width = width;
-	}
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

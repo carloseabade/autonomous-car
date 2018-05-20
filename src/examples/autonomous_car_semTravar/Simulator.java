@@ -39,9 +39,10 @@ public class Simulator extends JFrame{
 
 	private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
 	private ArrayList<Obstacle> obstacles = new ArrayList<>();
-	TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
+	private Crosswalk crosswalk;
+	private TrafficLight trafficLight;
 
-	private int fps = 1000 / 24;
+	private int fps = 1000 / 48;
 	private boolean animate = true;
 	private boolean notStart = true;
 	private byte zoom = 2;
@@ -51,7 +52,7 @@ public class Simulator extends JFrame{
 	private byte lanesQuantity = 2;
 	private byte obstaclesQuantity = 4;
 
-	Simulator() {
+	Simulator(PedestrianValues pedestrianValues) {
 		window = new JPanel();
 		window.setLayout(new BorderLayout());
 
@@ -80,8 +81,33 @@ public class Simulator extends JFrame{
 
 				g.fillRect(0, 146*zoom, width, 1*zoom);
 
-				// Draw car
+				// Draw car, sensor, sensor wide, traffic light, crosswalk, pedestrian
 				if(car.getY() != 0) {
+
+					// Draw crosswalk
+					BufferedImage bi_crosswalk = null;
+					try {
+						bi_crosswalk = ImageIO.read(new File("./res/img/crosswalk.png"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					g.drawImage(bi_crosswalk, (crosswalk.getX()-car.getX())*zoom, crosswalk.getY()*zoom, 36*zoom, 72*zoom, null);
+
+					// Draw pedestrian
+					BufferedImage bi_pedestrian = null;
+					try {
+						bi_pedestrian = ImageIO.read(new File("./res/img/pedestrian.png"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					if(pedestrianValues.isGoingUp()) {
+						pedestrianValues.setY(pedestrianValues.getY()-1);
+					} else if(pedestrianValues.isGoingDown()) {
+						pedestrianValues.setY(pedestrianValues.getY()+1);
+					}
+					g.drawImage(bi_pedestrian, (pedestrianValues.getX()-car.getX())*zoom, pedestrianValues.getY()*zoom, 9*zoom, 5*zoom, null);
+
+					//Draw car
 					BufferedImage bi_car = null;
 					try {
 						bi_car = ImageIO.read(new File("./res/img/tesla.png"));
@@ -107,33 +133,36 @@ public class Simulator extends JFrame{
 						e.printStackTrace();
 					}
 					g.drawImage(bi_sensor_wide, 30*zoom, (car.getY()-519)*zoom, 600*zoom, 1060*zoom, null);
-				}
 
-				// Draw obstacles
-				BufferedImage bi_stone = null;
-				try {
-					bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				for(Obstacle c : obstacles) {
-					g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
-				}
-
-				// Draw traffic light
-				BufferedImage bi_traffic_light = null;
-				try {
-					if(trafficLight.isGreen()) {
-						bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-green.png"));
-					} else if(trafficLight.isYellow()) {
-						bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-yellow.png"));
-					} else if(trafficLight.isRed()) {
-						bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-red.png"));
+					// Draw obstacles
+					BufferedImage bi_stone = null;
+					try {
+						bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
+					for(Obstacle c : obstacles) {
+						g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
+					}
+
+					// Draw traffic light
+					BufferedImage bi_traffic_light = null;
+					try {
+						if(trafficLight.isGreen()) {
+							bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-green.png"));
+						} else if(trafficLight.isYellow()) {
+							bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-yellow.png"));
+						} else if(trafficLight.isRed()) {
+							bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-red.png"));
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					g.drawImage(bi_traffic_light, (trafficLight.getX()-car.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
+
 				}
-				g.drawImage(bi_traffic_light, (trafficLight.getX()-car.getX())*zoom, (trafficLight.getY())*zoom, 17*zoom, 67*zoom, null);
+
+
 			}
 		};
 		simulatorSettings = new JPanel();
@@ -223,7 +252,6 @@ public class Simulator extends JFrame{
 		}
 	}
 
-
 	public void startAnimation() {
 		long nextUpdate = 0;
 
@@ -248,12 +276,6 @@ public class Simulator extends JFrame{
 		catch (Exception e) {
 			System.out.println(e);
 		}
-	}
-
-
-	public static void main(String args[]){
-		Simulator sim = new Simulator();
-		sim.startAnimation();
 	}
 
 	public byte getObstaclesQuantity() {
@@ -283,6 +305,10 @@ public class Simulator extends JFrame{
 
 	public void setObstacles(ArrayList<Obstacle> obstacles2) {
 		this.obstacles = obstacles2;
+	}
+
+	public void setCrosswalk(Crosswalk crosswalk) {
+		this.crosswalk = crosswalk;
 	}
 
 	public void setCarLocation(Car car2) {

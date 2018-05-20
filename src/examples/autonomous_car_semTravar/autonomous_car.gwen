@@ -22,9 +22,9 @@ GWENDOLEN
 
         /********************************* SEM OBSTÁCULOS OU SEMÁFOROS PRÓXIMOS ANDA NA VELOCIDADE MÁXIMA **********************************/
 
-+!go_forward [perform] : {B lane1(D2),
++!go_forward [perform] : {B lane1(D1),
 						  B lane2(D2),
-						  0 < D2,
+						  0 < D1,
 						  0 < D2,
 						 ~B obs1Close,
 						 ~B obs2Close,
@@ -33,14 +33,15 @@ GWENDOLEN
 						 ~B change_lane,
 						 ~B trafficLightYellow,
 						 ~B trafficLightRed,
+						 ~B pedestrianWalking,
 						  B velocity(V),
 						  B maxVelocity(MV),
 						  V < MV} <-
 	+accelerate;
 
-+!go_forward [perform] : {B lane1(D2), 
++!go_forward [perform] : {B lane1(D1), 
 						  B lane2(D2), 
-						  0 < D2,
+						  0 < D1,
 						  0 < D2,
 						 ~B obs1Close,
 						 ~B obs2Close,
@@ -49,10 +50,32 @@ GWENDOLEN
 						 ~B change_lane,
 						 ~B trafficLightYellow,
 						 ~B trafficLightRed,
+						 ~B crosswalkClose,
 						  B velocity(V),
 						  B maxVelocity(MV),
 						  V == MV} <-
 	+run;
+
+        /************************************************** CASO TENHA FAIXA DE PEDESTRE ***************************************************/
+
++!go_forward [perform] : {B lane1(D1), 
+						  B lane2(D2),
+						  0 < D1,
+						  0 < D2,
+						  B crosswalkClose,
+						 ~B pedestrianWalking} <-
+	+run; 
+               
++!go_forward [perform] : {B lane1(D1), 
+						  B lane2(D2),
+						  0 < D1,
+						  0 < D2,
+						  B crosswalkClose,
+						  B pedestrianWalking} <-
+	print(waiting),
+	aroundCrosswalk,
+	check_env, 
+	+!go_forward [perform];               
 
         /****************************************** CASO TENHA UM SEMAFORO NO AMARELO OU VERMELHO ******************************************/    
 

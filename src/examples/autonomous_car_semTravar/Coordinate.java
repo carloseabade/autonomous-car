@@ -2,16 +2,9 @@ package autonomous_car_semTravar;
 
 public class Coordinate {
 	
-	/*Posição no eixo x*/
 	private int x;
-	
-	/*Posição no eixo y*/
 	private int y;
-	
-	/*Comprimento do objeto*/
 	private int length; 
-	
-	/*Largura do objeto*/
 	private int width;
 	
 	public Coordinate() {}

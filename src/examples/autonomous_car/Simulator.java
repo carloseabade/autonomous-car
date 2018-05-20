@@ -1,21 +1,11 @@
 package autonomous_car;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.util.ArrayList;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -29,6 +19,15 @@ import javax.swing.JSlider;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.util.ArrayList;
 
 public class Simulator extends JFrame{
 
@@ -45,16 +44,14 @@ public class Simulator extends JFrame{
 	private Car car = new Car(50, 23, 1, 0, 0); // Coordenada onde o agente está localizado.
 	private ArrayList<Obstacle> obstacles = new ArrayList<>();
 	private Crosswalk crosswalk;
-	private Pedestrian pedestrian;
-	private PedestrianValues pedestrianValues;
 	private TrafficLight trafficLight = new TrafficLight(17, 67, 1000, 86);
-
-	private static DatagramSocket server;
 
 	private int fps = 1000 / 24;
 	private boolean animate = true;
 	private boolean notStart = true;
 	private byte zoom = 2;
+
+	private static DatagramSocket server;
 
 	private byte lanesQuantity = 2;
 	private byte obstaclesQuantity = 4;
@@ -68,11 +65,12 @@ public class Simulator extends JFrame{
 	private int mouseDraggedY = 0;
 
 	Simulator(PedestrianValues pedestrianValues) {
-		this.pedestrianValues = pedestrianValues;
 		window = new JPanel();
 		window.setLayout(new BorderLayout());
 
 		JPanel drawing = new JPanel() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void paintComponent(Graphics g) {
 				g.setColor(Color.decode("#518535"));
@@ -97,6 +95,7 @@ public class Simulator extends JFrame{
 				// Draw car, sensor, sensor wide, traffic light, crosswalk, pedestrian
 				if(car.getY() != 0) {
 					g.setColor(Color.decode("#fbfbfb"));
+
 					// Draw crosswalk
 					BufferedImage bi_crosswalk = null;
 					try {
@@ -137,6 +136,7 @@ public class Simulator extends JFrame{
 					}
 					g.drawImage(bi_car, 0, (car.getY())*zoom, 50*zoom, 23*zoom, null);
 
+					//Draw position
 					g.setColor(Color.decode("#ff0000"));
 					g.drawString(String.valueOf(car.getX()), 20, 20);
 
@@ -185,16 +185,16 @@ public class Simulator extends JFrame{
 					}
 
 					// Draw obstacles
-					BufferedImage bi_stone = null;
+					BufferedImage bi_obstacle = null;
 					try {
-						bi_stone = ImageIO.read(new File("./res/img/passenger.png"));
+						bi_obstacle = ImageIO.read(new File("./res/img/obstacle.png"));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 					for(Obstacle c : obstacles) {
-						g.drawImage(bi_stone, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
+						g.drawImage(bi_obstacle, (c.getX()-car.getX())*zoom, (c.getY())*zoom, 50*zoom, 23*zoom, null);
 					}
-						
+					
 					// Draw traffic light
 					BufferedImage bi_traffic_light = null;
 					try {
@@ -235,7 +235,7 @@ public class Simulator extends JFrame{
 		jS_obstaclesQuantity = new JSlider();
 		jS_obstaclesQuantity.setMaximum(50);
 		jS_obstaclesQuantity.setValue(getObstaclesQuantity());
-		jS_obstaclesQuantity.setMinimum(0);
+		jS_obstaclesQuantity.setMinimum(1);
 		jS_obstaclesQuantity.setMajorTickSpacing(1);
 		jS_obstaclesQuantity.setPaintTicks(true);
 		jS_obstaclesQuantity.addChangeListener(new ChangeListener() {
@@ -298,7 +298,7 @@ public class Simulator extends JFrame{
 		});
 		simulatorSettings.add(jCB_ultrasonicSensor);
 		
-		jCB_ultrasonicSensorOutline = new JCheckBox("Show ultrasonic sensor");
+		jCB_ultrasonicSensorOutline = new JCheckBox("Show ultrasonic sensor outline");
 		jCB_ultrasonicSensorOutline.setSelected(showUltrasonicSensorOutline);
 		jCB_ultrasonicSensorOutline.addActionListener(new ActionListener() {
 			@Override
@@ -313,6 +313,8 @@ public class Simulator extends JFrame{
 		jB_start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
+				setLanesQuantity((byte) jS_lanesQuantity.getValue());
+				setObstaclesQuantity((byte) jS_obstaclesQuantity.getValue());
 				notStart = false;
 				jS_obstaclesQuantity.setEnabled(false);
 				jL_obstaclesQuantity.setEnabled(false);
@@ -402,22 +404,19 @@ public class Simulator extends JFrame{
 
 	public void setTrafficLight(TrafficLight trafficLight) {
 		this.trafficLight = trafficLight;
+		this.trafficLight.start();
 	}
 
 	public TrafficLight getTrafficLight() {
 		return this.trafficLight;
 	}
 
-	public void setObstacles(ArrayList<Obstacle> obstacles) {
-		this.obstacles = obstacles;
+	public void setObstacles(ArrayList<Obstacle> obstacles2) {
+		this.obstacles = obstacles2;
 	}
 
 	public void setCrosswalk(Crosswalk crosswalk) {
 		this.crosswalk = crosswalk;
-	}
-
-	public void setPedestrian(Pedestrian pedestrian) {
-		this.pedestrian = pedestrian;
 	}
 
 	public void setCarLocation(Car car) {

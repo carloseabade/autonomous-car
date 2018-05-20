@@ -1,19 +1,18 @@
 package autonomous_car;
 
-public class TrafficLight extends Coordinate{
-
+public class TrafficLight extends Obstacle implements Runnable{
+	
+	private Thread thread;
 	private boolean red, yellow, green;
-	private Boolean found = false;
-	private Boolean analized = false;
-	private Boolean sinalized = false;
-	private Boolean overPast = false;
+	
+	public TrafficLight() {}
 
 	public TrafficLight(int length, int width, int x, int y) {
-		super("Thread do semaforo");
 		super.setLength(length);
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
+		thread = new Thread();
 		this.setRed(true);
 		this.setYellow(false);
 		this.setGreen(false);
@@ -42,41 +41,9 @@ public class TrafficLight extends Coordinate{
 	private void setGreen(boolean green) {
 		this.green = green;
 	}
-	
-	public Boolean isFound() {
-		return found;
-	}
-
-	public void setFound(Boolean found) {
-		this.found = found;
-	}
-
-	public Boolean isOverPast() {
-		return overPast;
-	}
-
-	public void setOverPast(Boolean overPast) {
-		this.overPast = overPast;
-	}
-
-	public Boolean isAnalized() {
-		return analized;
-	}
-
-	public void setAnalized(Boolean analized) {
-		this.analized = analized;
-	}
-
-	public Boolean isSinalized() {
-		return sinalized;
-	}
-
-	public void setSinalized(Boolean sinalized) {
-		this.sinalized = sinalized;
-	}
 
 	public void start() {
-		this.getThread().start();
+		thread.start();
 	}
 	
 	@Override

@@ -13,36 +13,32 @@ import ail.util.AILexception;
 
 public class AutonomousCarEnv extends DefaultEnvironment{
 
-	/* Armazena as informações do carro e a sua posição*/
-	private Car car; 
+	private Car car; //armazena as informações do carro
 
-	/*Armazena as informacoes do semaforo*/
-	private TrafficLight trafficLight;
-	
-	/*Instância do simulador*/
-	private Simulator simulator = new Simulator();
+	private Crosswalk crosswalk; //armazena as informações da faixa de pedestre
+	private Pedestrian pedestrian; //armazena as informações do pedestre
+	private Thread pedestrianThread; 
+	private PedestrianValues pedestrianValues;
 
-	/*Quantidade de faixas  e obstáculos no ambiente (Pelo menos 2 lanes e 1 obstáculo)*/
-	private int nLanes;
-	private int nObstacles; 
+	private TrafficLight trafficLight; //armazena as informações do semáforo
 
-	/*Lista que armazena as as informações de todos os obstáculos*/
-	private ArrayList<Obstacle> obstacles;
+	private Road road; //armazena as posições de cada pista
+	private int nLanes; //quantidade de faixas 
 
-	/*Classe que armazena as posições de cada pista*/
-	private Road road;
-
-	/*Controle dos obstáculos encontrados, analizados, sinalizados e ultrapassados*/
-	private int foundObstacle;
+	private int nObstacles; //quantidade de obstáculos
+	private ArrayList<Obstacle> obstacles; //armazena as informações dos obstáculos
+	private int foundObstacle; //controle dos obstáculos encontrados, analizados, sinalizados e ultrapassados
 	private int analizedObstacle;
 	private int sinalized;
-	private int overpastObstacle; 
+	private int overpastObstacle;
 
-	/*Tempo de espera para enviar as mensagens*/
-	private int waitTimeLocation; 
+	private int waitTimeLocation; //tempo de espera para enviar as mensagens
+
+	private Simulator simulator; //Instância do simulador
 
 	/*Inicia simulador junto ao construtor do ambiente*/
 	public AutonomousCarEnv() {
+		initVariables();
 		new Thread(new Runnable() {
 			public void run() {
 				simulator.startAnimation();
@@ -50,52 +46,49 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		}).start();
 	}
 
+	public void initVariables() {
+		pedestrianValues = new PedestrianValues(9, 5, 470, 146, false, false, true, false);
+		pedestrian = new Pedestrian(pedestrianValues);
+		pedestrianThread = new Thread(pedestrian);
+		pedestrianThread.start();
+		trafficLight = new TrafficLight(17, 67, 800, 86);
+		Thread trafficLightThread = new Thread(this.trafficLight);
+		trafficLightThread.start();
+		crosswalk = new Crosswalk(36, 72, 456, 74);
+		simulator = new Simulator(pedestrianValues);
+		simulator.setTrafficLight(trafficLight);
+		simulator.setCrosswalk(crosswalk);
+	}
+
 	/*Inicia informações do ambiente*/
 	@Override
 	public void setMAS(MAS m) {
 		super.setMAS(m);
-		
 		while(simulator.getNotStart()) {System.out.println("Stopped");}
-		
 		this.waitTimeLocation = 10;
-
-		/*Tamanho da lane e posições referentes ao meio das pistas 1, 2, 3, 4 respectivamente*/
-		this.road = new Road(36, 117, 80, 43, 6);
-		
+		this.road = new Road(36, 117, 80, 43, 6); //tamanho da lane e posições referentes ao meio das pistas 1, 2, 3, 4
 		this.nLanes = simulator.getLanesQuantity();
-
-		/*Inicia o carro na ordem: length, width, velocity, x, y*/
-		this.car = new Car(50, 23, 0, 0, getRoad(1 + (int)(Math.random() * 2)));
-		
-		this.trafficLight = new TrafficLight(17, 67, 1000, 86);
-		Thread trafficLightThread = new Thread(this.trafficLight);
-		trafficLightThread.start();
-		simulator.setTrafficLight(this.trafficLight);
-
+		//this.car = new Car(50, 23, 0, 0, getRoad(1 + (int)(Math.random() * 2)));//Inicia o carro na ordem: length, width, velocity, x, y
+		this.car = new Car(50, 23, 0, 0, getRoad(1));//Inicia o carro na ordem: length, width, velocity, x, y
 		this.nObstacles = simulator.getObstaclesQuantity();
 		this.obstacles = new ArrayList<Obstacle>(nObstacles);
-		
 		this.foundObstacle = 0;
 		this.analizedObstacle = 0;
 		this.sinalized = 0;
 		this.overpastObstacle = 0;
-
 		initObstacle();
-
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
-
 	}
 
 	public Unifier executeAction(String agName, Action act) throws AILexception {
 		Unifier u = new Unifier();
 
 		if(act.getFunctor().equals("sensor_enable")) {
-
 			car.setUltrasonicSensor(40);
 			car.setWideSensor(600);
 			//perguntar sobre sensor... ver car.java ******************************************************************************************
-			
+
 			Predicate velocity = new Predicate("velocity");
 			velocity.addTerm(new NumberTermImpl(car.getVelocity()));
 			addPercept(agName, velocity);
@@ -104,12 +97,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			car.setAcceleration(1*10);
 
 		} else if(act.getFunctor().equals("gps_enable")) {
-
 			Predicate at = new Predicate("at");
 			at.addTerm(new NumberTermImpl(car.getX()));
 			at.addTerm(new NumberTermImpl(car.getY()));
 			addPercept(agName, at);
-			
+
 			/*30 m/s = 108 km/h --- * 10 por cada posição da matriz corresponder a 10cm*/
 			car.setMaxVelocity(30*10);
 
@@ -138,76 +130,61 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			}
 
 		} else if(act.getFunctor().equals("run")) {	
-
 			removeOldCarPosition(agName);
 
 			car.setX(car.getX() + 1);
-
 			System.err.println("MOVING " + car.getX() + " " + car.getY());
-
 			addNewCarPosition(agName);
 
 			sendMessageSimulator();
 
 		} else if (act.getFunctor().equals("check_env")) {
-
 			checkEnvironment(agName);
 
 		} else if(act.getFunctor().equals("around")) {
-
 			around(agName);
 
 		} else if(act.getFunctor().equals("aroundTrafficLight")) {
-			
 			aroundTrafficLight(agName);
-			
-		} else if(act.getFunctor().equals("go_right")) {
 
+		} else if(act.getFunctor().equals("aroundCrosswalk")) {
+			aroundCrosswalk(agName);
+
+		} else if(act.getFunctor().equals("go_right")) {
 			removeOldCarPosition(agName);
 
 			car.setX(car.getX() + 1);
 			car.setY(car.getY() + 1); 
-
 			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
-
 			addNewCarPosition(agName);
 
 			if(car.getY() == road.getLane1Pos() || car.getY() == road.getLane2Pos()) {
-
 				Predicate change_lane = new Predicate("change_lane");
 				removePercept(agName, change_lane);
-
 			}
 
 			sendMessageSimulator();
 
 		} else if(act.getFunctor().equals("go_left")) {
-
 			removeOldCarPosition(agName);
 
 			car.setX(car.getX() + 1);
 			car.setY(car.getY() - 1); 
-
 			System.err.println("CHANGED LANE " + car.getX() + " " + car.getY());
-
 			addNewCarPosition(agName);
 
 			if(car.getY() == road.getLane1Pos() || car.getY() == road.getLane2Pos()) {
-
 				Predicate change_lane = new Predicate("change_lane");
 				removePercept(agName, change_lane);
-
 			}
 
 			sendMessageSimulator();
 
 		} else if(act.getFunctor().equals("remove_change_lane")) {
-
 			Predicate change_lane = new Predicate("change_lane");
 			removePercept(agName, change_lane);
 
 		} else if(act.getFunctor().equals("accelerate")) {
-
 			speedUp(agName);
 
 			removeOldCarPosition(agName);
@@ -221,7 +198,6 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			sendMessageSimulator();
 
 		} else if(act.getFunctor().equals("stop")) {
-
 			Predicate stopped = new Predicate("stopped");
 			addPercept(agName, stopped);
 
@@ -242,13 +218,13 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	private void initObstacle() {
 		int i = 1;
 
-		Obstacle aux = new Obstacle(50, 23, (100 + (int)(Math.random() * 101)), getRoad((int)(Math.random() * nLanes + 1)));
+		Obstacle aux = new Obstacle(50, 23, (600 + (int)(Math.random() * 101)), getRoad(1 + (int)(Math.random() * 2)));
 
 		obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
 
 		while (i < nObstacles) {
-			aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 401));
-			aux.setY(getRoad((int)(Math.random() * nLanes + 1)));
+			aux.setX(obstacles.get(i-1).front()+30 + (int)(Math.random() * 301));
+			aux.setY(getRoad(1 + (int)(Math.random() * 2)));
 
 			obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
 
@@ -264,9 +240,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 		simulator.setObstacles(obstacles);
 	}
-	
+
 	private void aroundTrafficLight(String agName) {
-		
+
 		if((trafficLight.isRed() || trafficLight.isYellow()) && trafficLight.getX() >= car.front()+20) {
 			speedDown(agName);
 
@@ -287,6 +263,28 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 		}
 	}
 
+	private void aroundCrosswalk(String agName) {
+
+		if((pedestrianValues.getY() < road.getLane1Bottom() && pedestrianValues.getY() > road.getLane2Top()) && crosswalk.getX() >= car.front()+20) {
+			speedDown(agName);
+
+			removeOldCarPosition(agName);
+
+			car.setX(car.getX() + 1);
+
+			System.err.println("MOVING " + car.getX() + " " + car.getY());
+
+			addNewCarPosition(agName);
+
+			sendMessageSimulator();
+
+		} else {
+			Predicate wait = new Predicate("wait");
+			addPercept(agName, wait);
+
+		}
+	}
+	
 	/*Função que faz o carro se aproximar do obstáculo*/
 	private void around(String agName) {
 		if(sinalized == 0 && obstacles.get(sinalized).back() > car.front()+20) {
@@ -349,7 +347,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 	/*Sensores analizam o ambiente*/
 	private void checkEnvironment(String agName) {
-		
+
 		/*Informa a lane que o carro se encontra*/
 		if(car.getY() < road.getLane1Bottom() && car.getY() > road.getLane1Top()) {
 			removeLanes(agName);
@@ -357,15 +355,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			Predicate in_lane1 = new Predicate("in_lane1");
 			addPercept(agName, in_lane1);
 
-		} else if (car.getY() < road.getLane2Bottom() && car.getY() > road.getLane2Top()) {
-			removeLanes(agName);
+		}
 
-			Predicate in_lane2 = new Predicate("in_lane2");
-			addPercept(agName, in_lane2);	
-
-		} 
-		
-		
 		/*Encontra os obstáculos que estão dentro do alcance do WideSensor*/
 		while(foundObstacle < obstacles.size() && !obstacles.get(foundObstacle).getFound() && obstacles.get(foundObstacle).back() <= car.front()+car.getWideSensor()) 
 		{
@@ -373,7 +364,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			System.out.println("FoundObstacle: (" + obstacles.get(foundObstacle).getX() + "," + obstacles.get(foundObstacle).getY() + ")");
 			foundObstacle += 1;
 		}
-		
+
 		/*Envia para o agente os obstáculos a serem analizados*/
 		if (obstacles.size() > analizedObstacle && analizedObstacle == 0 && obstacles.get(analizedObstacle).getFound() && !obstacles.get(analizedObstacle).getAnalized()) {
 			addObs1(agName, analizedObstacle);
@@ -431,14 +422,13 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removeObs3(agName, overpastObstacle+2);
 			overpastObstacle += 3;
 		}
-	
+
 		/* Checa o semaforo */
 		if(trafficLight.getX() <= car.front()+car.getWideSensor() && !trafficLight.getFound()){
 			trafficLight.setFound(true);
 			System.out.println("Found trafficLight: (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
 		}
-		
-		
+
 		if(trafficLight.getFound() && !trafficLight.getAnalized()) {
 			Predicate tl = new Predicate("trafficLight");
 			tl.addTerm(new NumberTermImpl(trafficLight.getX()));
@@ -447,24 +437,22 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			trafficLight.setAnalized(true);
 
-			System.out.println("TrafficLight1 (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
+			System.out.println("TrafficLight (" + trafficLight.getX() + "," + trafficLight.getY() + ")");
 		}
 
-		
 		if(trafficLight.getAnalized() && !trafficLight.getSinalized() && trafficLight.getX() <= car.front()+car.getUltrasonicSensor()) {
 			Predicate tlc = new Predicate("trafficLightClose");
 			addPercept(agName, tlc);
 			trafficLight.setSinalized(true);
 			System.out.println("trafficLightClose");
 		}
-		
-		
+
 		if(trafficLight.isGreen() && trafficLight.getSinalized() && !trafficLight.getOverPast()) {
 			Predicate yellow = new Predicate("trafficLightYellow");
 			removePercept(agName, yellow);
 			Predicate red = new Predicate("trafficLightRed");
 			removePercept(agName, red);
-			
+
 			Predicate green = new Predicate("trafficLightGreen");
 			addPercept(agName, green);
 
@@ -473,7 +461,7 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removePercept(agName, green);
 			Predicate red = new Predicate("trafficLightRed");
 			removePercept(agName, red);
-			
+
 			Predicate yellow = new Predicate("trafficLightYellow");
 			addPercept(agName, yellow);
 
@@ -482,13 +470,12 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removePercept(agName, green);
 			Predicate yellow= new Predicate("trafficLightYellow");
 			removePercept(agName, yellow);
-			
+
 			Predicate red = new Predicate("trafficLightRed");
 			addPercept(agName, red);
 
 		}
-		
-		
+
 		if(trafficLight.getX() <  car.front() && !trafficLight.getOverPast()) {
 			Predicate tl = new Predicate("trafficLight");
 			tl.addTerm(new NumberTermImpl(trafficLight.getX()));
@@ -497,18 +484,62 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			Predicate tlc = new Predicate("trafficLightClose");
 			removePercept(agName, tlc);
-			
+
 			Predicate green = new Predicate("trafficLightGreen");
 			removePercept(agName, green);
 			Predicate yellow= new Predicate("trafficLightYellow");
 			removePercept(agName, yellow);
 			Predicate red= new Predicate("trafficLightRed");
 			removePercept(agName, red);
-			
+
 			trafficLight.setOverPast(true);
 		}
+		
+		/* Checa a faixa de pedestre */
+		if(crosswalk.getX() <= car.front()+car.getWideSensor() && !crosswalk.getFound()){
+			crosswalk.setFound(true);
+			System.out.println("Found crosswalk: (" + crosswalk.getX() + "," + crosswalk.getY() + ")");
+		}
+		
+		if(crosswalk.getFound() && !crosswalk.getAnalized()) {
+			Predicate cw = new Predicate("crosswalk");
+			cw.addTerm(new NumberTermImpl(crosswalk.getX()));
+			cw.addTerm(new NumberTermImpl(crosswalk.getY()));
+			addPercept(agName, cw);
+
+			crosswalk.setAnalized(true);
+
+			System.out.println("Crosswalk (" + crosswalk.getX() + "," + crosswalk.getY() + ")");
+		}
+		
+		if(crosswalk.getAnalized() && !crosswalk.getSinalized() && crosswalk.getX() <= car.front()+car.getUltrasonicSensor()) {
+			Predicate cw = new Predicate("crosswalkClose");
+			addPercept(agName, cw);
+			crosswalk.setSinalized(true);
+			System.out.println("crosswalkClose");
+		}
+		
+		if(crosswalk.getSinalized() && pedestrianValues.getY() < road.getLane1Bottom() && pedestrianValues.getY() > road.getLane2Top() && !crosswalk.getOverPast()){
+			Predicate pw = new Predicate("pedestrianWalking");
+			addPercept(agName, pw);
+		}
+		
+		if(crosswalk.front() <  car.front() && !crosswalk.getOverPast()) {
+			Predicate cw = new Predicate("crosswalk");
+			cw.addTerm(new NumberTermImpl(crosswalk.getX()));
+			cw.addTerm(new NumberTermImpl(crosswalk.getY()));
+			removePercept(agName, cw);
+
+			Predicate cwc = new Predicate("crosswalkClose");
+			removePercept(agName, cwc);
+			
+			Predicate pw = new Predicate("pedestrianWalking");
+			removePercept(agName, pw);
+
+			crosswalk.setOverPast(true);
+		}
 	}
-	
+
 	private void removeOldCarPosition(String agName) {
 		Predicate old_position = new Predicate("at");
 		old_position.addTerm(new VarTerm("X"));
@@ -654,27 +685,27 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	public void removeLanes(String agName) {
 		Predicate in_lane1 = new Predicate("in_lane1");
 		removePercept(agName, in_lane1);
-		
+
 		Predicate in_lane2 = new Predicate("in_lane2");
 		removePercept(agName, in_lane2);
-		
+
 		Predicate in_lane3 = new Predicate("in_lane3");
 		removePercept(agName, in_lane3);
-		
+
 		Predicate in_lane4 = new Predicate("in_lane4");
 		removePercept(agName, in_lane4);
 	}
-	
+
 	private int getRoad(int roadNumber) {
 		switch(roadNumber) {
-			case 1: return 117;
-			case 2: return 80;
-			case 3: return 43;
-			case 4: return 6;
+		case 1: return 117;
+		case 2: return 80;
+		case 3: return 43;
+		case 4: return 6;
 		}
 		return -1;
 	}
-	
+
 	private void sendMessageSimulator() {
 		try {
 			TimeUnit.MILLISECONDS.sleep(waitTimeLocation);
