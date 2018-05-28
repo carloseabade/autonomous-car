@@ -12,23 +12,21 @@ import ail.syntax.VarTerm;
 import ail.util.AILexception;
 
 public class AutonomousCarEnv extends DefaultEnvironment{
+	
+	private boolean simulatorActivated = true;
 
 	/* Armazena as informações do carro e a sua posição*/
 	private Car car; 
 
 	/*Armazena as informacoes do semaforo*/
 	private TrafficLight trafficLight;
-	private Thread trafficLightThread;
 	
 	/*Instância do simulador*/
 	private Simulator simulator;
 
 	/*Lista que armazena as as informações de todos as faixas de pedestre*/
 	private Crosswalk crosswalk;
-	private Thread pedestrianThread;
 	private Pedestrian pedestrian;
-
-	private PedestrianValues pedestrianValues;
 
 	private Road road; //armazena as posições de cada pista
 	private int nLanes; //quantidade de faixas 
@@ -45,46 +43,52 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	/*Inicia simulador junto ao construtor do ambiente*/
 	public AutonomousCarEnv() {
 		initVariables();
-		new Thread(new Runnable() {
-			public void run() {
-				simulator.startAnimation();
-			}
-		}).start();
+		if(simulatorActivated) {
+			new Thread(new Runnable() {
+				public void run() {
+					simulator.startAnimation();
+				}
+			}).start();
+		}
 	}
 
 	public void initVariables() {
-		pedestrianValues = new PedestrianValues(9, 5, 456+14, 74+72, false, false, true, false);
-		pedestrian = new Pedestrian(pedestrianValues);
-		pedestrianThread = new Thread(pedestrian);
-		pedestrianThread.start();
-		trafficLight = new TrafficLight(17, 67, 1000, 86);
-		trafficLightThread = new Thread(trafficLight);
-		trafficLightThread.start();
-		Thread trafficLightThread = new Thread(this.trafficLight);
-		trafficLightThread.start();
-//		crosswalk = new Crosswalk(36, 72, 800-14, 146-72);
-		crosswalk = new Crosswalk(36, 72, 456, 74);
-		simulator = new Simulator(pedestrianValues);
+		pedestrian = new Pedestrian(9, 5, 500+14, 74+72);
+		trafficLight = new TrafficLight(17, 67, 750, 86);
+		crosswalk = new Crosswalk(36, 72, 500, 74);
+		simulator = new Simulator();
 		simulator.setTrafficLight(trafficLight);
 		simulator.setCrosswalk(crosswalk);
+		simulator.setPedestrian(pedestrian);
 	}
 
 	/*Inicia informações do ambiente*/
 	@Override
 	public void setMAS(MAS m) {
 		super.setMAS(m);
-		while(simulator.getNotStart()) {System.out.println("Stopped");}
+		if(simulatorActivated) {
+			while(simulator.getNotStart()) {System.out.println("Stopped");}
+		}
 		this.waitTimeLocation = 10;
 		this.road = new Road(36, 117, 80, 43, 6); //tamanho da lane e posições referentes ao meio das pistas 1, 2, 3, 4
-		this.nLanes = simulator.getLanesQuantity();
+		this.nLanes = 2;
+		if(simulatorActivated) {
+			this.nLanes = simulator.getLanesQuantity();
+		}
 		this.car = new Car(50, 23, 0, 0, getRoad(1 + (int)(Math.random() * 2)));//Inicia o carro na ordem: length, width, velocity, x, y
-		this.nObstacles = simulator.getObstaclesQuantity();
+		this.nObstacles = 10;
+		if(simulatorActivated) {
+			this.nObstacles = simulator.getObstaclesQuantity();
+		}
 		this.obstacles = new ArrayList<Obstacle>(nObstacles);
 		this.foundObstacle = 0;
 		this.analizedObstacle = 0;
 		this.sinalized = 0;
 		this.overpastObstacle = 0;
 		initObstacle();
+		if(simulatorActivated) {
+			simulator.setObstacles(obstacles);
+		}
 		Predicate start = new Predicate("start");
 		addPercept("car", start);
 	}
@@ -144,7 +148,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			System.err.println("MOVING " + car.getX() + " " + car.getY());
 			addNewCarPosition(agName);
 			
-			sendMessageSimulator();
+			this.runTime();
+
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 			
 		} else if (act.getFunctor().equals("check_env")) {
 			checkEnvironment(agName);
@@ -168,7 +176,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 				removePercept(agName, change_lane);
 			}
 			
-			sendMessageSimulator();
+			this.runTime();
+			
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 			
 		} else if(act.getFunctor().equals("go_left")) {
 			removeOldCarPosition(agName);
@@ -183,7 +195,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 				removePercept(agName, change_lane);
 			}
 
-			sendMessageSimulator();
+			this.runTime();
+
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else if(act.getFunctor().equals("remove_change_lane")) {
 			Predicate change_lane = new Predicate("change_lane");
@@ -200,7 +216,11 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			addNewCarPosition(agName);
 
-			sendMessageSimulator();
+			this.runTime();
+
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else if(act.getFunctor().equals("stop")) {
 			Predicate stopped = new Predicate("stopped");
@@ -209,7 +229,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			Predicate start = new Predicate("start");
 			removePercept(agName, start);
 
-			sendMessageSimulator(); 
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 		}
 
 		super.executeAction(agName, act);
@@ -219,8 +241,24 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	}
 
 	/**************************************************************************** FUNÇÕES ****************************************************************************/
+	/*Loop que altera o semaforo e o pedestre*/
+	private void runTime() {
+		this.trafficLight.addTime();
+		this.trafficLight.checkState();
+		
+		this.pedestrian.addTime();
+		this.pedestrian.checkState();
+		if(this.pedestrian.isGoingDown()) {
+			this.pedestrian.setY(this.pedestrian.getY()+1);
+		} else if(this.pedestrian.isGoingUp()) {
+			this.pedestrian.setY(this.pedestrian.getY()-1);
+		}
+
+	}
+	
 	/*Popula o Array com os obstáculos e define as coordenadas aleatoriamente*/
 	private void initObstacle() {
+		/*
 		int i = 1;
 
 		Obstacle aux = new Obstacle(50, 23, (600 + (int)(Math.random() * 101)), getRoad((int)(Math.random() * nLanes + 1)));
@@ -242,8 +280,13 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			System.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
 			i++;
 		}
+		*/
+		obstacles.add(new Obstacle(50, 23, 200, getRoad(1)));
+		obstacles.add(new Obstacle(50, 23, 400, getRoad(2)));
+		obstacles.add(new Obstacle(50, 23, 600, getRoad(1)));
+		obstacles.add(new Obstacle(50, 23, 900, getRoad(1)));
+		obstacles.add(new Obstacle(50, 23, 900, getRoad(2)));
 
-		simulator.setObstacles(obstacles);
 	}
 
 	private void aroundTrafficLight(String agName) {
@@ -259,13 +302,16 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			addNewCarPosition(agName);
 
-			sendMessageSimulator();
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else if ((trafficLight.isRed() || trafficLight.isYellow())) {
 			Predicate wait = new Predicate("wait");
 			addPercept(agName, wait);
-
 		}
+		
+		this.runTime();
 	}
 
 	/*Função que faz o carro se aproximar do obstáculo*/
@@ -281,7 +327,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			addNewCarPosition(agName);
 
-			sendMessageSimulator();
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else if (obstacles.size() > sinalized+1 && obstacles.get(sinalized).back() <= car.back() && obstacles.get(sinalized+1).back() > car.front()+20) {
 			speedDown(agName);
@@ -294,7 +342,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			addNewCarPosition(agName);
 
-			sendMessageSimulator();
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else if (sinalized-2 > 0 && obstacles.get(sinalized-2).back() <= car.back() && obstacles.get(sinalized-1).back() > car.front()+20) {
 			speedDown(agName);
@@ -307,7 +357,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			addNewCarPosition(agName);
 
-			sendMessageSimulator();
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else if (sinalized-1 > 0 && obstacles.get(sinalized-1).back() <= car.back() && obstacles.get(sinalized).back() > car.front()+20) {
 			speedDown(agName);
@@ -320,7 +372,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 			addNewCarPosition(agName);
 
-			sendMessageSimulator();
+			if(simulatorActivated) {
+				sendMessageSimulator();
+			}
 
 		} else { 
 			Predicate change_lane = new Predicate("change_lane");
@@ -412,6 +466,8 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 			removeObs3(agName, overpastObstacle+2);
 			overpastObstacle += 3;
 		}
+		
+		if(trafficLight == null) return;
 
 		/* Checa o semaforo */
 		if(trafficLight.getX() <= car.front()+car.getWideSensor() && !trafficLight.getFound()){

@@ -1,9 +1,9 @@
 package autonomous_car;
 
-public class TrafficLight extends Obstacle implements Runnable{
-	
-	private Thread thread;
+public class TrafficLight extends Obstacle{
+
 	private boolean red, yellow, green;
+	private int time;
 	
 	public TrafficLight() {}
 
@@ -12,10 +12,10 @@ public class TrafficLight extends Obstacle implements Runnable{
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
-		thread = new Thread();
 		this.setRed(true);
 		this.setYellow(false);
 		this.setGreen(false);
+		this.time = 0;
 	}
 	
 	public boolean isRed() {
@@ -41,34 +41,27 @@ public class TrafficLight extends Obstacle implements Runnable{
 	private void setGreen(boolean green) {
 		this.green = green;
 	}
-
-	public void start() {
-		thread.start();
+	
+	public void addTime() {
+		this.time += 1;
+		if(this.time == 800) {
+			this.time = 0;
+		}
 	}
 	
-	@Override
-	public void run() {
-		while(true) {
-			try {
-				if(this.isRed()) {
-					Thread.sleep(5000);
-					this.setRed(false);
-					this.setYellow(false);
-					this.setGreen(true);
-				} else if(this.isYellow()) {
-					Thread.sleep(2000);
-					this.setYellow(false);
-					this.setGreen(false);
-					this.setRed(true);
-				} else if(this.isGreen()) {
-					Thread.sleep(5000);
-					this.setGreen(false);
-					this.setRed(false);
-					this.setYellow(true);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+	public void checkState() {
+		if (this.time > -1 && this.time < 401) {
+			this.setRed(true);
+			this.setGreen(false);
+			this.setYellow(false);
+		} else if (this.time > 400 && this.time < 601) {
+			this.setRed(false);
+			this.setGreen(true);
+			this.setYellow(false);
+		} else if (this.time > 600 && this.time < 801) {
+			this.setRed(false);
+			this.setGreen(false);
+			this.setYellow(true);
 		}
 	}
 }

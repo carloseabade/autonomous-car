@@ -1,0 +1,5 @@
+@using = mcapl
+
+target = ail.util.AJPF_w_AIL
+
+target.args = ${mcapl}/src/examples/autonomous_car/autonomous_car.ail,${mcapl}/src/examples/autonomous_car/autonomous_car.psl,1
