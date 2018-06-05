@@ -1,0 +1,9 @@
+1: <> B(car, obs1Close) & B(car, change_lane) & B(car, in_lane1) -> <> D(car, go_left)
+
+2: <> B(car, obs1Close) & B(car, change_lane) & B(car, in_lane1) -> [] ~D(car, run)
+
+3: <> B(car, obs1Close) & B(car, change_lane) & B(car, in_lane2) -> <> D(car, go_right)
+
+4: <> B(car, obs1Close) & B(car, obs2Close) & B(car, obs3Close) -> [] D(car, stop)
+
+5: <> B(car, trafficLightClose) & B(car, trafficLightRed) -> [] ~D(car, run)
