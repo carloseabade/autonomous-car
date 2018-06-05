@@ -1,0 +1,23 @@
+[INFO] Number: 2
+Incoming States: 0,2,
+True in this State: B(car,trafficLightRed()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()) R B(car,trafficLightRed()),
+True in next State: ~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()) R B(car,trafficLightRed()),
+Number: 7
+Incoming States: 0,2,
+True in this State: B(car,trafficLightClose()),B(car,trafficLightRed()),~A(car,run()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()) R B(car,trafficLightRed()),T U A(car,run()),
+True in next State: ~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),T U A(car,run()),
+Number: 10
+Incoming States: 7,10,14,23,
+True in this State: B(car,trafficLightClose()),B(car,trafficLightRed()),~A(car,run()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),T U A(car,run()),
+True in next State: ~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),T U A(car,run()),
+Number: 14
+Incoming States: 7,10,14,23,
+True in this State: B(car,trafficLightClose()),B(car,trafficLightRed()),A(car,run()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),T U A(car,run()),
+True in next State: ~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),
+Number: 23
+Incoming States: 0,2,
+True in this State: B(car,trafficLightClose()),B(car,trafficLightRed()),A(car,run()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()),B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()) R B(car,trafficLightRed()),T U A(car,run()),
+True in next State: ~T R B(car,trafficLightClose()) /\ B(car,trafficLightRed()) /\ T U A(car,run()),
+
+[INFO] Adding 0 to [0]
+[INFO] Always True from Now On

@@ -7,3 +7,5 @@
 4: <> B(car, obs1Close) & B(car, obs2Close) & B(car, obs3Close) -> [] D(car, stop)
 
 5: <> B(car, trafficLightClose) & B(car, trafficLightRed) -> [] ~D(car, run)
+
+6: <> (B(car, trafficLightClose) & B(car, trafficLightRed) -> [] ~D(car, run)) U ~B(car, trafficLightRed)
