@@ -3,12 +3,8 @@ package autonomous_car_simulacao;
 public class Pedestrian extends Coordinate{
 
 	private int time;
-	private int length;
-	private int width;
-	private int x;
-	private int y;
 	private boolean goingUp = false;
-	private boolean goingDown = false;
+	private boolean goingDown = false; 
 	private boolean waitingToGoDown = false;
 	private boolean waitingToGoUp = true;
 
@@ -17,16 +13,16 @@ public class Pedestrian extends Coordinate{
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
-		this.time = 0;
+		this.setTime(0);
 	}
 	
 	public void addTime() {
 		if(isWaitingToGoDown() || isWaitingToGoUp()) {
-			this.time += 1;
-			if(this.time == 150) {
-				this.time = 0;
+			this.setTime(this.getTime() + 1);
+			if(this.getTime() == 150) {
+				this.setTime(0);
 				if(isWaitingToGoDown()) {
-					setGoingUp(false);
+					setGoingUp(false); 
 					setGoingDown(true);
 					setWaitingToGoUp(false);
 					setWaitingToGoDown(false);
@@ -34,7 +30,8 @@ public class Pedestrian extends Coordinate{
 					setGoingUp(true);
 					setGoingDown(false);
 					setWaitingToGoUp(false);
-					setWaitingToGoDown(false);				}
+					setWaitingToGoDown(false);
+				}
 			}
 		}
 	}
@@ -42,7 +39,7 @@ public class Pedestrian extends Coordinate{
 	public void checkState() {
 		if(isGoingUp()) {
 			if(getY()<70) {
-				setGoingUp(false);
+				setGoingUp(false); 
 				setGoingDown(false);
 				setWaitingToGoUp(false);
 				setWaitingToGoDown(true);
@@ -87,5 +84,13 @@ public class Pedestrian extends Coordinate{
 
 	public void setWaitingToGoUp(boolean waitingToGoUp) {
 		this.waitingToGoUp = waitingToGoUp;
+	}
+
+	public int getTime() {
+		return time;
+	}
+
+	public void setTime(int time) {
+		this.time = time;
 	}
 }

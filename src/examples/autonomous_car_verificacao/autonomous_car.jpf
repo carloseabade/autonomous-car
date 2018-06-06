@@ -2,8 +2,8 @@
 
 target = ail.util.AJPF_w_AIL
 
-target.args = ${mcapl}/src/examples/autonomous_car_verificacao/autonomous_car.ail,${mcapl}/src/examples/autonomous_car_verificacao/autonomous_car.psl,6
+target.args = ${mcapl}/src/examples/autonomous_car_verificacao/autonomous_car.ail,${mcapl}/src/examples/autonomous_car_verificacao/autonomous_car.psl,8
 
 log.info = ajpf.psl.buchi.BuchiAutomaton,ajpf.product.Product,ajpf.MCAPLAgent,ail.mas.DefaultEnvironment,gwendolen.simple.SimpleEnv,ajpf.MCAPLAgent,ajpf.product.Product,ail.mas.DefaultEnvironment,gwendolen.simple.SimpleEnv
 
-log.output = /home/mapsavia/GitHub/Carlos-Priscilla/autonomous-car/src/examples/autonomous_car_verificacao/output/verificacao_formal_06.txt
+log.output = /home/mapsavia/GitHub/Carlos-Priscilla/autonomous-car/src/examples/autonomous_car_verificacao/output/verificacao_formal_08.txt

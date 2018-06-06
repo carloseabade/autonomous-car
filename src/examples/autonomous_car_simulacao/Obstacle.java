@@ -12,7 +12,7 @@ public class Obstacle extends Coordinate{
 	public Obstacle(int length, int width, int x, int y) {
 		super.setLength(length);
 		super.setWidth(width);
-		super.setX(x);
+		super.setX(x); 
 		super.setY(y);
 	}
 

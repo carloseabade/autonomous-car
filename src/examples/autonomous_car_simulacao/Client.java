@@ -9,7 +9,7 @@ public class Client {
 		
 		String stringConverted = "";
 		
-		for( String string : stringArray ) {
+		for( String string : stringArray ) { 
 			stringConverted += string + ";";
 		}
 		

@@ -3,10 +3,6 @@ package autonomous_car_verificacao;
 public class Pedestrian extends Coordinate{
 
 	private int time;
-	private int length;
-	private int width;
-	private int x;
-	private int y;
 	private boolean goingUp = false;
 	private boolean goingDown = false;
 	private boolean waitingToGoDown = false;
@@ -23,7 +19,7 @@ public class Pedestrian extends Coordinate{
 	public void addTime() {
 		if(isWaitingToGoDown() || isWaitingToGoUp()) {
 			this.time += 1;
-			if(this.time == 150) {
+			if(this.time == 20) {
 				this.time = 0;
 				if(isWaitingToGoDown()) {
 					setGoingUp(false);

@@ -1,9 +1,12 @@
 package autonomous_car_verificacao;
 
+import autonomous_car_simulacao.Obstacle;
+
 public class TrafficLight extends Obstacle{
 
 	private boolean red, yellow, green;
 	private int time;
+	private String state = "";
 	
 	public TrafficLight() {}
 
@@ -15,7 +18,7 @@ public class TrafficLight extends Obstacle{
 		this.setRed(true);
 		this.setYellow(false);
 		this.setGreen(false);
-		this.time = 0;
+		this.setTime(0);
 	}
 	
 	public boolean isRed() {
@@ -41,27 +44,42 @@ public class TrafficLight extends Obstacle{
 	private void setGreen(boolean green) {
 		this.green = green;
 	}
+	 
+	public int getTime() {
+		return time;
+	}
+
+	public void setTime(int time) {
+		this.time = time;
+	}
+	
+	public String getState() {	
+		return state;
+	}
 	
 	public void addTime() {
-		this.time += 1;
-		if(this.time == 800) {
-			this.time = 0;
+		this.setTime(this.getTime() + 1);
+		if(this.getTime() == 300) {
+			this.setTime(0);
 		}
 	}
 	
 	public void checkState() {
-		if (this.time > -1 && this.time < 401) {
+		if (this.getTime() > -1 && this.getTime() < 101) {
 			this.setRed(true);
+			this.state = "red";
 			this.setGreen(false);
 			this.setYellow(false);
-		} else if (this.time > 400 && this.time < 601) {
+		} else if (this.getTime() > 100 && this.getTime() < 201) {
 			this.setRed(false);
 			this.setGreen(true);
+			this.state = "green";
 			this.setYellow(false);
-		} else if (this.time > 600 && this.time < 801) {
+		} else if (this.getTime() > 200 && this.getTime() < 301) {
 			this.setRed(false);
 			this.setGreen(false);
 			this.setYellow(true);
+			this.state = "yellow";
 		}
 	}
 }

@@ -8,4 +8,8 @@
 
 5: <> B(car, trafficLightClose) & B(car, trafficLightRed) -> [] ~D(car, run)
 
-6: <> (B(car, trafficLightClose) & B(car, trafficLightRed) -> [] ~D(car, run)) U ~B(car, trafficLightRed)
+6: <> B(car, trafficLightClose) & B(car, trafficLightRed) -> [] ~D(car, run) U B(car, trafficLightGreen)
+
+7: <> B(car, crosswalkClose) & B(car, pedestrianWalking) -> [] ~D(car, run)
+
+8: <> B(car, velocity(5)) & B(car, maxVelocity(5)) -> [] ~D(car, accelerate)

@@ -1,4 +1,4 @@
-package autonomous_car_simulacao;
+package autonomous_car_simulacao; 
 
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -13,7 +13,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.WindowConstants;
@@ -46,6 +45,9 @@ public class Simulator extends JFrame{
 	private Crosswalk crosswalk;
 	private TrafficLight trafficLight;
 	private Pedestrian pedestrian;
+	private String trafficLightState = "";
+	private int pedestrianX;
+	private int pedestrianY;
 
 	private int fps = 1000 / 24;
 	private boolean animate = true;
@@ -97,7 +99,7 @@ public class Simulator extends JFrame{
 				if(car.getY() != 0) {
 					g.setColor(Color.decode("#fbfbfb"));
 					
-					if(crosswalk != null) {
+					if(crosswalk != null) { 
 						// Draw crosswalk
 						BufferedImage bi_crosswalk = null;
 						try {
@@ -116,7 +118,7 @@ public class Simulator extends JFrame{
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
-						g.drawImage(bi_pedestrian, (pedestrian.getX()-car.getX())*zoom, pedestrian.getY()*zoom, 9*zoom, 5*zoom, null);
+						g.drawImage(bi_pedestrian, (pedestrianX-car.getX())*zoom, pedestrianY*zoom, 9*zoom, 5*zoom, null);
 					}
 
 					//Draw car
@@ -130,8 +132,7 @@ public class Simulator extends JFrame{
 
 					//Draw position
 					g.setColor(Color.decode("#ff0000"));
-					g.drawString(String.valueOf(car.getX()), 20, 20);
-
+					
 					if(showUltrasonicSensor) {
 						// Draw ultrasonic sensor
 						BufferedImage bi_sensor = null;
@@ -191,11 +192,11 @@ public class Simulator extends JFrame{
 						// Draw traffic light
 						BufferedImage bi_traffic_light = null;
 						try {
-							if(trafficLight.isGreen()) {
+							if(trafficLightState.equals("green")) {
 								bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-green.png"));
-							} else if(trafficLight.isYellow()) {
+							} else if(trafficLightState.equals("yellow")) {
 								bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-yellow.png"));
-							} else if(trafficLight.isRed()) {
+							} else if(trafficLightState.equals("red")) {
 								bi_traffic_light = ImageIO.read(new File("./res/img/traffic-light-red.png"));
 							}
 						} catch (IOException e) {
@@ -287,7 +288,7 @@ public class Simulator extends JFrame{
 			@Override
 			public void actionPerformed(ActionEvent actionEvent) {
 				if(showUltrasonicSensor) showUltrasonicSensor = false;
-				else showUltrasonicSensor = true;
+				else showUltrasonicSensor = true; 
 			}
 		});
 		simulatorSettings.add(jCB_ultrasonicSensor);
@@ -340,6 +341,13 @@ public class Simulator extends JFrame{
 		case    "carLocation":
 			car.setX(Integer.parseInt(messageArray[1]));
 			car.setY(Integer.parseInt(messageArray[2]));
+			break;
+		case    "trafficLightState":
+			trafficLightState = messageArray[1];
+			break;
+		case    "pedestrianLocation":
+			pedestrianX = Integer.parseInt(messageArray[1]);
+			pedestrianY = Integer.parseInt(messageArray[2]);
 			break;
 		default:
 			System.out.println("Erro");

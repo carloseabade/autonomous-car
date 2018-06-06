@@ -8,7 +8,7 @@ public class Road {
 	private int lane3Pos;
 	private int lane4Pos;
 	
-	public Road() {}
+	public Road() {} 
 	
 	public Road(int laneWidth, int lane1Pos, int lane2Pos, int lane3Pos, int lane4Pos) {
 		this.setLaneWidth(laneWidth);

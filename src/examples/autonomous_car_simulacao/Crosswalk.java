@@ -9,6 +9,6 @@ public class Crosswalk extends Obstacle{
 		super.setWidth(width);
 		super.setX(x);
 		super.setY(y);
-	}
+	} 
 
 }

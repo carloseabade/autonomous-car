@@ -7,7 +7,7 @@ public class Coordinate {
 	private int length; 
 	private int width;
 	
-	public Coordinate() {}
+	public Coordinate() {} 
 	
 	/*Retorna a posi��o da parte de tr�s do objeto*/
 	public int back() {
