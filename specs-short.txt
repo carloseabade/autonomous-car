@@ -1,0 +1,24 @@
+H/W path      Device  Class          Description
+================================================
+                      system         Computer
+/0                    bus            Motherboard
+/0/0                  memory         15GiB System memory
+/0/1                  processor      Intel(R) Core(TM) i7-7700 CPU @ 3.60GHz
+/0/100                bridge         Intel Corporation
+/0/100/1              bridge         Sky Lake PCIe Controller (x16)
+/0/100/1/0            display        NVIDIA Corporation
+/0/100/1/0.1          multimedia     NVIDIA Corporation
+/0/100/14             bus            Sunrise Point-H USB 3.0 xHCI Controller
+/0/100/16             communication  Sunrise Point-H CSME HECI #1
+/0/100/17             storage        Sunrise Point-H SATA controller [AHCI mode]
+/0/100/1c             bridge         Sunrise Point-H PCI Express Root Port #5
+/0/100/1c/0   enp2s0  network        RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller
+/0/100/1c.5           bridge         Sunrise Point-H PCI Express Root Port #6
+/0/100/1c.6           bridge         Sunrise Point-H PCI Express Root Port #7
+/0/100/1c.7           bridge         Sunrise Point-H PCI Express Root Port #8
+/0/100/1d             bridge         Sunrise Point-H PCI Express Root Port #9
+/0/100/1d.1           bridge         Sunrise Point-H PCI Express Root Port #10
+/0/100/1f             bridge         Sunrise Point-H LPC Controller
+/0/100/1f.2           memory         Memory controller
+/0/100/1f.3           multimedia     Sunrise Point-H HD Audio
+/0/100/1f.4           bus            Sunrise Point-H SMBus
