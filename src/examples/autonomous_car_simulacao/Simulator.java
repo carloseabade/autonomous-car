@@ -57,7 +57,7 @@ public class Simulator extends JFrame{
 	private static DatagramSocket server;
 
 	private byte lanesQuantity = 2;
-	private byte obstaclesQuantity = 4;
+	private byte obstaclesQuantity = 7;
 	
 	private boolean showWideSensor = true;
 	private boolean showWideSensorOutline = false;

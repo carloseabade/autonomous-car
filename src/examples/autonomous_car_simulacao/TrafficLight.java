@@ -57,23 +57,23 @@ public class TrafficLight extends Obstacle{
 	
 	public void addTime() {
 		this.setTime(this.getTime() + 1);
-		if(this.getTime() == 800) {
+		if(this.getTime() == 600) {
 			this.setTime(0);
 		}
 	}
 	
 	public void checkState() {
-		if (this.getTime() > -1 && this.getTime() < 401) {
+		if (this.getTime() > -1 && this.getTime() < 201) {
 			this.setRed(true);
 			this.state = "red";
 			this.setGreen(false);
 			this.setYellow(false);
-		} else if (this.getTime() > 400 && this.getTime() < 601) {
+		} else if (this.getTime() > 200 && this.getTime() < 401) {
 			this.setRed(false);
 			this.setGreen(true);
 			this.state = "green";
 			this.setYellow(false);
-		} else if (this.getTime() > 600 && this.getTime() < 801) {
+		} else if (this.getTime() > 400 && this.getTime() < 601) {
 			this.setRed(false);
 			this.setGreen(false);
 			this.setYellow(true);

@@ -49,9 +49,9 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 	}
 
 	public void initVariables() {
-		pedestrian = new Pedestrian(9, 5, 500+14, 74+72);
+		pedestrian = new Pedestrian(9, 5, 400+14, 74+72);
 		trafficLight = new TrafficLight(17, 67, 750, 86);
-		crosswalk = new Crosswalk(36, 72, 500, 74);
+		crosswalk = new Crosswalk(36, 72, 400, 74);
 		simulator = new Simulator();
 		simulator.setTrafficLight(trafficLight);
 		simulator.setCrosswalk(crosswalk);
@@ -251,27 +251,34 @@ public class AutonomousCarEnv extends DefaultEnvironment{
 
 	/*Popula o Array com os obst�culos e define as coordenadas aleatoriamente*/
 	private void initObstacle() {
-		int i = 1;
-
-		Obstacle aux = new Obstacle(50, 23, (600 + (int)(Math.random() * 101)), getRoad((int)(Math.random() * nLanes + 1)));
-
-		obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
-
-		while (i < nObstacles) {
-			aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 301));
-			aux.setY(getRoad((int)(Math.random() * nLanes + 1)));
-
-			obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
-
-			i++;
-		}
-		System.out.println("Environment obstacles:");
-
-		i = 0;
-		while (i < nObstacles) {
-			System.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
-			i++;
-		}
+		obstacles.add(new Obstacle(50, 23, 645, 80));
+		obstacles.add(new Obstacle(50, 23, 866, 117));
+		obstacles.add(new Obstacle(50, 23, 1016, 80));
+		obstacles.add(new Obstacle(50, 23, 1202, 117));
+		obstacles.add(new Obstacle(50, 23, 1388, 80));		
+		obstacles.add(new Obstacle(50, 23, 1443, 117));
+		obstacles.add(new Obstacle(50, 23, 1735, 80));		
+//		int i = 1;
+//
+//		Obstacle aux = new Obstacle(50, 23, (600 + (int)(Math.random() * 101)), getRoad((int)(Math.random() * nLanes + 1)));
+//
+//		obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
+//
+//		while (i < nObstacles) {
+//			aux.setX(obstacles.get(i-1).front() + (int)(Math.random() * 301));
+//			aux.setY(getRoad((int)(Math.random() * nLanes + 1)));
+//
+//			obstacles.add(new Obstacle(aux.getLength(), aux.getWidth(), aux.getX(), aux.getY()));
+//
+//			i++;
+//		}
+//		System.out.println("Environment obstacles:");
+//
+//		i = 0;
+//		while (i < nObstacles) {
+//			System.out.println("Obstacle (" + obstacles.get(i).getX() + "," + obstacles.get(i).getY() + ")");
+//			i++;
+//		}
 	}
 
 	private void aroundTrafficLight(String agName) {
